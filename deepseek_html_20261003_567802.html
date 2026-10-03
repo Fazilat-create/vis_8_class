@@ -1,0 +1,2046 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Случайные опыты и элементарные события</title>
+
+<script>
+  MathJax = {
+    tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+    svg: { fontCache: 'global' }
+  };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+<style>
+  :root{
+    --main:#27ae60;
+    --dark:#1e8449;
+    --light:#e8f6ed;
+    --border:#a9dfc0;
+    --bg:#f4fbf6;
+    --green:#27ae60;
+    --red:#e74c3c;
+
+    --plate-green-bg:#e6f4d7;
+    --plate-green-br:#7ac143;
+    --plate-mint-bg:#d9f2e6;
+    --plate-mint-br:#27ae60;
+    --plate-teal-bg:#d4f0ee;
+    --plate-teal-br:#16a085;
+    --plate-lime-bg:#eef7d4;
+    --plate-lime-br:#9acd32;
+    --plate-orange-bg:#fde9d3;
+    --plate-orange-br:#e67e22;
+    --plate-blue-bg:#dff0fb;
+    --plate-blue-br:#3498db;
+
+    --hint-bg:#fef9e0;
+    --hint-bar:#f1c40f;
+
+    --text-scale: 1.05;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    font-family:"Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size:calc(20px * var(--text-scale));
+    background:var(--bg);
+    color:#1c3d2a;
+    line-height:1.55;
+  }
+
+  .progress{
+    position:fixed; top:0; left:0; height:6px;
+    background:var(--main); width:0%; z-index:100;
+    transition:width .3s ease;
+  }
+  .counter{
+    position:fixed; top:14px; right:20px; z-index:100;
+    background:#fff; color:var(--dark);
+    border:2px solid var(--border); border-radius:24px;
+    padding:6px 20px;
+    font-size:17px; font-weight:800;
+    box-shadow:0 4px 14px rgba(39,174,96,.2);
+  }
+
+  .slide{
+    display:none;
+    max-width:1100px;
+    margin:70px auto 130px;
+    background:#fff;
+    border-radius:20px;
+    box-shadow:0 18px 46px rgba(39,174,96,.15);
+    padding:42px 52px 52px;
+    position:relative;
+    animation:fade .35s ease;
+  }
+  .slide.active{display:block;}
+  @keyframes fade{
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:none;}
+  }
+
+  .slide-num{
+    position:absolute; top:18px; left:26px;
+    font-size:15px; color:var(--border); font-weight:800;
+  }
+
+  h1{
+    font-size:calc(2.3rem * var(--text-scale));
+    color:var(--dark);
+    text-align:center;
+    margin:0 0 12px;
+    font-weight:900;
+  }
+  .subtitle{
+    text-align:center;
+    color:var(--main);
+    font-size:calc(1.15rem * var(--text-scale));
+    margin-bottom:32px;
+    font-weight:700;
+  }
+
+  h2{
+    font-size:calc(1.8rem * var(--text-scale));
+    color:#fff;
+    margin:0 0 24px;
+    padding:12px 24px;
+    background:var(--main);
+    border-radius:14px;
+    font-weight:900;
+    box-shadow:0 8px 20px rgba(39,174,96,.3);
+    display:inline-block;
+  }
+
+  h3{
+    color:var(--dark);
+    font-size:calc(1.25rem * var(--text-scale));
+    margin:0 0 12px;
+    font-weight:800;
+  }
+  p{margin:12px 0; font-size:calc(19px * var(--text-scale));}
+  ul,ol{margin:12px 0 12px 26px; padding:0;}
+  li{margin:8px 0; font-size:calc(19px * var(--text-scale)); font-weight:500;}
+
+  .formula{
+    font-size:calc(1.45rem * var(--text-scale));
+    text-align:center;
+    margin:18px 0;
+    color:var(--dark);
+    font-weight:800;
+  }
+
+  .plate{
+    border-radius:18px;
+    padding:22px 28px;
+    margin:20px 0;
+    border:2px solid;
+  }
+  .plate-title{
+    display:inline-block;
+    font-size:calc(1.3rem * var(--text-scale));
+    font-weight:900;
+    padding:8px 22px;
+    border-radius:12px;
+    margin-bottom:14px;
+    color:#fff;
+  }
+  .plate-green{background:var(--plate-green-bg); border-color:var(--plate-green-br);}
+  .plate-green .plate-title{background:var(--plate-green-br);}
+  .plate-mint{background:var(--plate-mint-bg); border-color:var(--plate-mint-br);}
+  .plate-mint .plate-title{background:var(--plate-mint-br);}
+  .plate-teal{background:var(--plate-teal-bg); border-color:var(--plate-teal-br);}
+  .plate-teal .plate-title{background:var(--plate-teal-br);}
+  .plate-lime{background:var(--plate-lime-bg); border-color:var(--plate-lime-br);}
+  .plate-lime .plate-title{background:var(--plate-lime-br);}
+  .plate-orange{background:var(--plate-orange-bg); border-color:var(--plate-orange-br);}
+  .plate-orange .plate-title{background:var(--plate-orange-br);}
+  .plate-blue{background:var(--plate-blue-bg); border-color:var(--plate-blue-br);}
+  .plate-blue .plate-title{background:var(--plate-blue-br);}
+
+  .grid{display:grid; gap:20px;}
+  .grid-2{grid-template-columns:1fr 1fr;}
+  .grid-3{grid-template-columns:repeat(3,1fr);}
+
+  .hint{
+    background:var(--hint-bg);
+    border-left:8px solid var(--hint-bar);
+    border-radius:10px;
+    padding:16px 22px;
+    margin:18px 0;
+    font-size:calc(18px * var(--text-scale));
+    font-weight:600;
+  }
+  .hint b{color:#b45309;}
+
+  .figure{
+    display:flex; justify-content:center; align-items:center;
+    margin:14px 0;
+  }
+  svg{max-width:100%; height:auto;}
+  .svg-label{font-size:16px; fill:#1c3d2a; font-weight:700;}
+  .svg-label-green{font-size:16px; fill:#1e8449; font-weight:800;}
+
+  .task-box{
+    background:var(--light);
+    border:2px solid var(--border);
+    border-radius:18px;
+    padding:22px 28px;
+    margin:20px 0;
+  }
+  .task-head{display:flex; align-items:center; gap:14px; margin-bottom:12px;}
+  .task-num{
+    flex:0 0 auto;
+    width:38px; height:38px; border-radius:50%;
+    background:var(--main);
+    box-shadow:0 6px 14px rgba(39,174,96,.35);
+  }
+  .task-title{font-weight:800; color:var(--dark); font-size:calc(1.1rem * var(--text-scale));}
+
+  details{
+    margin-top:14px;
+    background:#fff;
+    border:2px solid var(--border);
+    border-radius:12px;
+    padding:10px 20px;
+  }
+  summary{
+    cursor:pointer;
+    font-weight:800;
+    color:var(--dark);
+    outline:none;
+    font-size:calc(16px * var(--text-scale));
+  }
+  details[open] summary{margin-bottom:10px;}
+  details p{font-size:calc(16px * var(--text-scale));}
+  .answer{color:var(--green); font-weight:800;}
+
+  .quiz-item{
+    background:#fff;
+    border:2px solid var(--border);
+    border-radius:14px;
+    padding:14px 20px;
+    margin:10px 0;
+    display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  }
+  .quiz-item .q-text{
+    flex:1; min-width:220px;
+    font-weight:700;
+    font-size:calc(17px * var(--text-scale));
+  }
+  .quiz-btns{display:flex; gap:10px; flex-wrap:wrap;}
+  .quiz-btn{
+    border:2px solid var(--main);
+    background:#fff; color:var(--main);
+    border-radius:12px;
+    padding:8px 20px;
+    font-size:calc(16px * var(--text-scale));
+    font-weight:800;
+    cursor:pointer;
+    transition:all .2s;
+  }
+  .quiz-btn:hover{background:var(--light);}
+  .quiz-btn.correct{background:var(--green); border-color:var(--green); color:#fff;}
+  .quiz-btn.wrong{background:var(--red); border-color:var(--red); color:#fff;}
+  .quiz-feedback{
+    flex-basis:100%;
+    font-size:calc(16px * var(--text-scale));
+    font-weight:800;
+  }
+  .quiz-feedback.ok{color:var(--green);}
+  .quiz-feedback.no{color:var(--red);}
+
+  .sort-container{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));
+    gap:12px;
+    margin:16px 0;
+  }
+  .sort-card{
+    background:#fff;
+    border:3px solid var(--border);
+    border-radius:14px;
+    padding:14px 12px;
+    text-align:center;
+    cursor:pointer;
+    font-weight:800;
+    font-size:calc(1.15rem * var(--text-scale));
+    color:var(--dark);
+    transition:all .2s;
+    user-select:none;
+  }
+  .sort-card:hover{
+    border-color:var(--main);
+    transform:translateY(-3px);
+    box-shadow:0 8px 20px rgba(39,174,96,.2);
+  }
+  .sort-card.correct{
+    background:var(--green);
+    color:#fff;
+    border-color:#1e8449;
+  }
+  .sort-card.wrong{
+    background:var(--red);
+    color:#fff;
+    border-color:#c0392b;
+    animation:shake .4s;
+  }
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    25%{transform:translateX(-6px);}
+    75%{transform:translateX(6px);}
+  }
+
+  .question-slide{text-align:center;}
+  .question-slide .big-q{
+    font-size:calc(1.9rem * var(--text-scale));
+    color:var(--dark);
+    font-weight:900;
+    margin:36px 0;
+    line-height:1.4;
+  }
+  .question-slide .big-q em{color:var(--main); font-style:normal;}
+  .think{
+    display:inline-block;
+    background:var(--hint-bg);
+    border:3px dashed var(--hint-bar);
+    border-radius:20px;
+    padding:18px 36px;
+    font-size:calc(1.25rem * var(--text-scale));
+    font-weight:800;
+    color:#b45309;
+    margin:18px 0;
+  }
+
+  .big-formula{
+    background:var(--plate-lime-bg);
+    border:3px solid var(--plate-lime-br);
+    border-radius:18px;
+    padding:24px 28px;
+    text-align:center;
+    margin:22px 0;
+  }
+  .big-formula .f-line{
+    font-size:calc(2rem * var(--text-scale));
+    color:var(--dark);
+    font-weight:900;
+    margin:8px 0;
+  }
+
+  .dice-row{
+    display:flex; gap:12px;
+    justify-content:center; flex-wrap:wrap;
+    margin:16px 0;
+  }
+  .dice-face{
+    width:72px; height:72px;
+    background:#fff;
+    border:3px solid var(--main);
+    border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:30px; font-weight:900;
+    color:var(--dark);
+    box-shadow:0 6px 14px rgba(39,174,96,.2);
+  }
+  .coin-row{
+    display:flex; gap:20px;
+    justify-content:center;
+    margin:16px 0;
+  }
+  .coin{
+    width:80px; height:80px;
+    border-radius:50%;
+    background:#fdf6d9;
+    border:4px solid #c9a227;
+    display:flex; align-items:center; justify-content:center;
+    font-size:32px; font-weight:900;
+    color:#8a6a0a;
+    box-shadow:0 6px 14px rgba(201,162,39,.3);
+  }
+
+  .outcomes{
+    display:flex; gap:12px;
+    justify-content:center; flex-wrap:wrap;
+    margin:16px 0;
+  }
+  .outcome{
+    background:#fff;
+    border:3px solid var(--main);
+    border-radius:14px;
+    padding:16px 22px;
+    font-size:calc(1.3rem * var(--text-scale));
+    font-weight:900;
+    color:var(--dark);
+    box-shadow:0 6px 14px rgba(39,174,96,.15);
+  }
+
+  .chocolate{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:6px;
+    max-width:280px;
+    margin:16px auto;
+    background:#5a3a1a;
+    padding:6px;
+    border-radius:10px;
+  }
+  .chocolate .piece{
+    background:#8b5a2b;
+    height:60px;
+    border-radius:6px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:24px; font-weight:900; color:#fff;
+  }
+
+  .chain{
+    display:flex; flex-direction:column;
+    align-items:center; gap:6px;
+    margin:18px 0;
+  }
+  .chain .step{
+    background:var(--plate-mint-bg);
+    border:2px solid var(--plate-mint-br);
+    border-radius:14px;
+    padding:12px 28px;
+    font-size:calc(1.1rem * var(--text-scale));
+    font-weight:800;
+    color:var(--dark);
+    min-width:340px;
+    text-align:center;
+  }
+  .chain .arrow{
+    color:var(--main);
+    font-size:26px;
+    font-weight:900;
+  }
+
+  .solution-box{
+    margin-top:14px;
+    background:#fff;
+    border:2px solid var(--border);
+    border-radius:10px;
+    min-height:70px;
+    padding:14px 18px;
+  }
+
+  .nav{
+    position:fixed; bottom:22px; left:50%; transform:translateX(-50%);
+    display:flex; gap:14px; z-index:100;
+  }
+  .nav button{
+    background:var(--main); color:#fff; border:none;
+    padding:12px 28px; border-radius:32px;
+    font-size:17px; font-weight:800; cursor:pointer;
+    box-shadow:0 8px 22px rgba(39,174,96,.4);
+    transition:background .2s, transform .1s;
+  }
+  .nav button:hover{background:var(--dark);}
+  .nav button:active{transform:scale(.97);}
+  .nav button:disabled{background:#c7e7d3; cursor:default; box-shadow:none;}
+
+  @media (max-width:760px){
+    .slide{margin:60px 12px 130px; padding:24px 18px 32px;}
+    .grid-2,.grid-3{grid-template-columns:1fr;}
+    h1{font-size:1.6rem;}
+    h2{font-size:1.35rem; padding:10px 18px;}
+    body{font-size:16px;}
+    .nav button{padding:10px 20px; font-size:14px;}
+    .counter{top:10px; right:10px; font-size:13px; padding:3px 12px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="counter" id="counter">1 / 35</div>
+
+<!-- ================= СЛАЙД 1. Титул ================= -->
+<section class="slide active" data-num="1">
+  <span class="slide-num">Слайд 1</span>
+  <h1>Случайные опыты и элементарные события</h1>
+  <p class="subtitle">Вероятности элементарных событий · Равновозможные элементарные события</p>
+
+  <div class="grid grid-3">
+    <div class="plate plate-mint">
+      <span class="plate-title">1</span>
+      <p>Вспомним прошлую тему</p>
+    </div>
+    <div class="plate plate-teal">
+      <span class="plate-title">2</span>
+      <p>Опыт и элементарные события</p>
+    </div>
+    <div class="plate plate-lime">
+      <span class="plate-title">3</span>
+      <p>Виды событий и вероятности</p>
+    </div>
+  </div>
+
+  <div class="hint">
+    <b>Сегодня работаем в диалоге:</b> сначала я задаю вопрос — вы думаете,
+    потом проверяем ответ.
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 2. Актуализация: операции над множествами ================= -->
+<section class="slide" data-num="2">
+  <span class="slide-num">Слайд 2</span>
+  <h2>Актуализация: операции над множествами</h2>
+
+  <p>Вспомним, что мы умеем делать с множествами. Ответьте сами:</p>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">1. Что означает знак \(\cup\)?</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="true">Объединение</button>
+      <button class="quiz-btn" data-ans="false">Пересечение</button>
+      <button class="quiz-btn" data-ans="false">Разность</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">2. \(A \cap B\) — это…</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">Всё из \(A\) и \(B\)</button>
+      <button class="quiz-btn" data-ans="true">Только общее</button>
+      <button class="quiz-btn" data-ans="false">В \(A\), но не в \(B\)</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">3. \(A \setminus B\) — это…</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">Всё из \(A\) и \(B\)</button>
+      <button class="quiz-btn" data-ans="false">Только общее</button>
+      <button class="quiz-btn" data-ans="true">В \(A\), но не в \(B\)</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">4. \(\overline{A}\) — это…</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="true">Всё, чего нет в \(A\)</button>
+      <button class="quiz-btn" data-ans="false">Сам \(A\)</button>
+      <button class="quiz-btn" data-ans="false">Только общее</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 3. Актуализация: промежутки ================= -->
+<section class="slide" data-num="3">
+  <span class="slide-num">Слайд 3</span>
+  <h2>Актуализация: числовые промежутки</h2>
+
+  <p>Какой промежуток соответствует неравенству? Кликни на карточку.</p>
+
+  <div class="sort-container" data-correct="1">
+    <div class="sort-card">\((-3;\ 5)\)</div>
+    <div class="sort-card">\([-3;\ 5)\)</div>
+    <div class="sort-card">\((-3;\ 5]\)</div>
+    <div class="sort-card">\([-3;\ 5]\)</div>
+  </div>
+
+  <p style="text-align:center; margin-top:-6px;">Неравенство: \(-3 \leq x < 5\)</p>
+
+  <div class="hint" id="fb-sort1" style="display:none;"></div>
+
+  <div class="plate plate-teal" style="margin-top:24px;">
+    <span class="plate-title">Правило</span>
+    <p>Круглая скобка \((\) — точка пустая, число не входит.</p>
+    <p>Квадратная \([\) — точка закрашенная, число входит.</p>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 4. Актуализация: правило умножения ================= -->
+<section class="slide" data-num="4">
+  <span class="slide-num">Слайд 4</span>
+  <h2>Актуализация: правило умножения</h2>
+
+  <div class="plate plate-lime">
+    <span class="plate-title">Напоминание</span>
+    <p>Если первое действие — \(m\) способов, второе — \(n\) способов,
+       то <b>оба вместе</b>:</p>
+    <p class="formula">\(m \cdot n\)</p>
+  </div>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">Задача</div>
+    </div>
+    <p>В меню 3 супа и 4 вторых блюда. Сколько вариантов обеда из двух блюд?</p>
+    <details>
+      <summary>Показать ответ</summary>
+      <p class="answer">\(3 \cdot 4 = 12\) вариантов.</p>
+    </details>
+  </div>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">Задача</div>
+    </div>
+    <p>Сколько различных пар можно составить, если первое число из \(\{1, 2, 3\}\),
+       а второе из \(\{a, b, c, d\}\)?</p>
+    <details>
+      <summary>Показать ответ</summary>
+      <p class="answer">\(3 \cdot 4 = 12\) пар.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 5. Вопрос-переход ================= -->
+<section class="slide question-slide" data-num="5">
+  <span class="slide-num">Слайд 5</span>
+  <h2>Переходим к новой теме</h2>
+
+  <div class="big-q">
+    До сих пор мы точно знали, <em>сколько вариантов</em>.<br>
+    А что если мы <em>не знаем</em>, что именно произойдёт?
+  </div>
+
+  <div class="think">🤔 Как назвать действие, результат которого нельзя предсказать?</div>
+</section>
+
+<!-- ================= СЛАЙД 6. Вход в тему ================= -->
+<section class="slide" data-num="6">
+  <span class="slide-num">Слайд 6</span>
+  <h2>Что может произойти?</h2>
+
+  <div class="grid grid-2">
+    <div class="plate plate-mint">
+      <span class="plate-title">Монета</span>
+      <div class="coin-row">
+        <div class="coin">О</div>
+        <div class="coin">Р</div>
+      </div>
+      <p>Подбросили монету</p>
+    </div>
+    <div class="plate plate-teal">
+      <span class="plate-title">Кубик</span>
+      <div class="dice-row">
+        <div class="dice-face">1</div>
+        <div class="dice-face">2</div>
+        <div class="dice-face">3</div>
+      </div>
+      <p>Бросили игральный кубик</p>
+    </div>
+    <div class="plate plate-lime">
+      <span class="plate-title">Мешок</span>
+      <p>Вытянули шар из мешка</p>
+    </div>
+    <div class="plate plate-green">
+      <span class="plate-title">Лифт</span>
+      <p>Нажали кнопку лифта</p>
+    </div>
+  </div>
+
+  <div class="question-slide">
+    <div class="big-q" style="font-size:calc(1.5rem * var(--text-scale)); margin:20px 0;">
+      <em>Можно ли заранее точно знать, чем закончится опыт?</em>
+    </div>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 7. Случайный опыт ================= -->
+<section class="slide" data-num="7">
+  <span class="slide-num">Слайд 7</span>
+  <h2>Что такое случайный опыт?</h2>
+
+  <div class="plate plate-mint">
+    <span class="plate-title">Определение</span>
+    <p><b>Случайный опыт</b> — это действие или наблюдение, результат которого
+       заранее точно неизвестен, но можно <b>перечислить возможные результаты</b>.</p>
+  </div>
+
+  <div class="plate plate-teal">
+    <span class="plate-title">Пример</span>
+    <p>🎲 Бросаем кубик → выпадет одно из чисел \(1, 2, 3, 4, 5, 6\).</p>
+    <p>Мы не знаем, какое именно, но знаем <b>все возможные</b> результаты.</p>
+  </div>
+
+  <div class="hint">
+    <b>Важно:</b> случайный опыт — это не только монеты и кубики.
+    Например: выбор билета в лотерее, прогноз погоды, время ожидания автобуса.
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 8. Опыт или нет? ================= -->
+<section class="slide" data-num="8">
+  <span class="slide-num">Слайд 8</span>
+  <h2>Мини-задание: опыт или нет?</h2>
+
+  <p>Определи, является ли ситуация <b>случайным опытом</b>.
+     Будьте внимательны: ответы чередуются!</p>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">1. Бросить игральный кубик</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="true">Это опыт</button>
+      <button class="quiz-btn" data-ans="false">Не опыт</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">2. Узнать время по часам</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">Это опыт</button>
+      <button class="quiz-btn" data-ans="true">Не опыт</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">3. Найти площадь прямоугольника \(3 \times 5\)</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">Это опыт</button>
+      <button class="quiz-btn" data-ans="true">Не опыт</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">4. Вытащить карту из колоды</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="true">Это опыт</button>
+      <button class="quiz-btn" data-ans="false">Не опыт</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">5. Достать конфету из коробки, не глядя</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="true">Это опыт</button>
+      <button class="quiz-btn" data-ans="false">Не опыт</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">6. Вычислить \(25 \cdot 4\)</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">Это опыт</button>
+      <button class="quiz-btn" data-ans="true">Не опыт</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">7. Подбросить монету</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="true">Это опыт</button>
+      <button class="quiz-btn" data-ans="false">Не опыт</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">8. Перемножить 7 и 8</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">Это опыт</button>
+      <button class="quiz-btn" data-ans="true">Не опыт</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 9. Один опыт — много результатов ================= -->
+<section class="slide" data-num="9">
+  <span class="slide-num">Слайд 9</span>
+  <h2>Один опыт — много результатов</h2>
+
+  <div class="plate plate-mint">
+    <span class="plate-title">Опыт: тянем карточку из мешка</span>
+    <p>В мешке карточки с числами от 1 до 5. Наугад вытягивают одну.</p>
+    <div class="outcomes">
+      <div class="outcome">1</div>
+      <div class="outcome">2</div>
+      <div class="outcome">3</div>
+      <div class="outcome">4</div>
+      <div class="outcome">5</div>
+    </div>
+  </div>
+
+  <div class="hint">
+    <b>Вопрос классу:</b> какие результаты могут получиться?
+    Сколько их всего? Могут ли быть ещё какие-то?
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 10. Элементарное событие ================= -->
+<section class="slide" data-num="10">
+  <span class="slide-num">Слайд 10</span>
+  <h2>Элементарное событие</h2>
+
+  <div class="plate plate-teal">
+    <span class="plate-title">Определение</span>
+    <p><b>Элементарное событие</b> — один конкретный возможный результат случайного опыта.</p>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="plate plate-green">
+      <span class="plate-title">✔ Элементарное</span>
+      <ul>
+        <li>«Выпало 1»;</li>
+        <li>«Выпало 4»;</li>
+        <li>«Выпало 6».</li>
+      </ul>
+      <p style="margin-top:10px; font-style:italic;">Один исход.</p>
+    </div>
+    <div class="plate plate-orange">
+      <span class="plate-title">✘ Составное</span>
+      <ul>
+        <li>«Выпало чётное число» — это <b>2, 4, 6</b>;</li>
+        <li>«Выпало больше 4» — это <b>5, 6</b>;</li>
+        <li>«Выпало нечётное число» — это <b>1, 3, 5</b>.</li>
+      </ul>
+      <p style="margin-top:10px; font-style:italic;">Несколько исходов.</p>
+    </div>
+  </div>
+
+  <div class="hint">
+    <b>Запомни:</b> если событию соответствует <b>ровно один</b> исход — оно <b>элементарное</b>.
+    Если <b>несколько</b> — <b>составное</b>.
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 11. Элементарное или составное? ================= -->
+<section class="slide" data-num="11">
+  <span class="slide-num">Слайд 11</span>
+  <h2>Задание: элементарное или составное?</h2>
+
+  <p>Бросаем <b>игральный кубик</b> (6 граней, числа 1–6).
+     Определи: <b>Э</b> — элементарное, <b>С</b> — составное.</p>
+
+  <div class="hint">
+    <b>Как отличить?</b> Спроси себя: «Сколько исходов подходит?»
+    <br>Один → Э. Несколько → С.
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">1. Выпало чётное число</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">Э</button>
+      <button class="quiz-btn" data-ans="true">С</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">2. Выпало 3</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="true">Э</button>
+      <button class="quiz-btn" data-ans="false">С</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">3. Выпало число больше 3</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">Э</button>
+      <button class="quiz-btn" data-ans="true">С</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">4. Выпало нечётное число</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">Э</button>
+      <button class="quiz-btn" data-ans="true">С</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">5. Выпало 6</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="true">Э</button>
+      <button class="quiz-btn" data-ans="false">С</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">6. Выпало простое число (2, 3, 5)</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">Э</button>
+      <button class="quiz-btn" data-ans="true">С</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">7. Выпало 1</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="true">Э</button>
+      <button class="quiz-btn" data-ans="false">С</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">8. Выпало число меньше 5</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">Э</button>
+      <button class="quiz-btn" data-ans="true">С</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 12. Виды событий ================= -->
+<section class="slide" data-num="12">
+  <span class="slide-num">Слайд 12</span>
+  <h2>Виды событий</h2>
+
+  <div class="plate plate-mint">
+    <span class="plate-title">Ситуация</span>
+    <p>Бросаем обычный кубик. Рассмотрим три события:</p>
+    <ul>
+      <li><b>А:</b> выпало число от 1 до 6;</li>
+      <li><b>Б:</b> выпало 7;</li>
+      <li><b>В:</b> выпало 4.</li>
+    </ul>
+    <p>Чем они отличаются?</p>
+  </div>
+
+  <div class="grid grid-3">
+    <div class="plate plate-green">
+      <span class="plate-title">Достоверное</span>
+      <p>Обязательно произойдёт.</p>
+      <p><b>Пример:</b> «выпало число от 1 до 6».</p>
+    </div>
+    <div class="plate plate-orange">
+      <span class="plate-title">Невозможное</span>
+      <p>Никогда не произойдёт.</p>
+      <p><b>Пример:</b> «выпало 7».</p>
+    </div>
+    <div class="plate plate-blue">
+      <span class="plate-title">Случайное</span>
+      <p>Может произойти, а может — нет.</p>
+      <p><b>Пример:</b> «выпало 4».</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 13. Виды событий: практика + №231 ================= -->
+<section class="slide" data-num="13">
+  <span class="slide-num">Слайд 13</span>
+  <h2>Виды событий: практика</h2>
+
+  <p>Бросаем <b>игральный кубик</b> (6 граней, числа 1–6).
+     Определи вид события:
+     <b>Д</b> — достоверное, <b>Н</b> — невозможное, <b>С</b> — случайное.</p>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">1. Выпало число меньше 7</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="true">Д</button>
+      <button class="quiz-btn" data-ans="false">Н</button>
+      <button class="quiz-btn" data-ans="false">С</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">2. Выпало 8</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">Д</button>
+      <button class="quiz-btn" data-ans="true">Н</button>
+      <button class="quiz-btn" data-ans="false">С</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">3. Выпало 5</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">Д</button>
+      <button class="quiz-btn" data-ans="false">Н</button>
+      <button class="quiz-btn" data-ans="true">С</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">4. Выпало чётное число</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">Д</button>
+      <button class="quiz-btn" data-ans="false">Н</button>
+      <button class="quiz-btn" data-ans="true">С</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">5. Выпало натуральное число</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="true">Д</button>
+      <button class="quiz-btn" data-ans="false">Н</button>
+      <button class="quiz-btn" data-ans="false">С</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">6. Выпало 0</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">Д</button>
+      <button class="quiz-btn" data-ans="true">Н</button>
+      <button class="quiz-btn" data-ans="false">С</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">7. Выпало 2</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">Д</button>
+      <button class="quiz-btn" data-ans="false">Н</button>
+      <button class="quiz-btn" data-ans="true">С</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="hint">
+    <b>Важная ловушка:</b> «выпало чётное число» — <b>случайное</b> событие,
+    но <b>не элементарное</b>, а <b>составное</b>, потому что ему соответствуют 2, 4, 6.
+  </div>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">№231. Кубик бросают 2 раза</div>
+    </div>
+    <p>Какие из событий <b>невозможные</b>, какие — <b>достоверные</b>?</p>
+    <ul>
+      <li>A. Сумма выпавших очков меньше 100;</li>
+      <li>B. В сумме выпадет 1 очко;</li>
+      <li>C. В сумме выпадет 13 очков;</li>
+      <li>D. В сумме выпадет два или больше очков.</li>
+    </ul>
+    <details>
+      <summary>Показать ответ</summary>
+      <p><b>Невозможные:</b> B (минимум 1+1=2), C (максимум 6+6=12).</p>
+      <p><b>Достоверные:</b> A (сумма всегда ≤ 12, значит < 100), D (минимум 2).</p>
+    </details>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 14. Сколько элементарных событий? ================= -->
+<section class="slide" data-num="14">
+  <span class="slide-num">Слайд 14</span>
+  <h2>Сколько элементарных событий?</h2>
+
+  <p>Для каждого опыта посчитайте число элементарных событий
+     и запишите в тетради.</p>
+
+  <div class="grid grid-3">
+    <div class="plate plate-mint">
+      <span class="plate-title">Монета</span>
+      <div class="coin-row">
+        <div class="coin">О</div>
+        <div class="coin">Р</div>
+      </div>
+      <p style="text-align:center;">Сколько событий? ______</p>
+    </div>
+
+    <div class="plate plate-teal">
+      <span class="plate-title">Кубик</span>
+      <div class="dice-row">
+        <div class="dice-face">1</div>
+        <div class="dice-face">2</div>
+        <div class="dice-face">3</div>
+      </div>
+      <p style="text-align:center;">Сколько событий? ______</p>
+    </div>
+
+    <div class="plate plate-lime">
+      <span class="plate-title">Мешок с карточками 1–5</span>
+      <p>Вытягиваем одну карточку</p>
+      <p style="text-align:center;">Сколько событий? ______</p>
+    </div>
+  </div>
+
+  <details>
+    <summary>Показать ответы (после обсуждения)</summary>
+    <p>Монета — <b>2</b>; Кубик — <b>6</b>; Карточки — <b>5</b>.</p>
+  </details>
+</section>
+
+<!-- ================= СЛАЙД 15. Два броска монеты ================= -->
+<section class="slide" data-num="15">
+  <span class="slide-num">Слайд 15</span>
+  <h2>Более интересный опыт: два броска монеты</h2>
+
+  <p>Монету бросают два раза. Какие возможны результаты?</p>
+
+  <div class="outcomes">
+    <div class="outcome">ОО</div>
+    <div class="outcome">ОР</div>
+    <div class="outcome">РО</div>
+    <div class="outcome">РР</div>
+  </div>
+
+  <div class="hint">
+    <b>Всего 4 элементарных события.</b><br>
+    Обрати внимание: «ОР» и «РО» — разные события!
+    (Сначала орёл, потом решка — не то же самое, что сначала решка, потом орёл.)
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 16. Три броска монеты ================= -->
+<section class="slide" data-num="16">
+  <span class="slide-num">Слайд 16</span>
+  <h2>А если три броска?</h2>
+
+  <p>Монету бросают <b>три раза</b>. Выпишите все элементарные события
+     и посчитайте, сколько их.</p>
+
+  <div class="solution-box" style="min-height:140px;"></div>
+
+  <div class="hint">
+    <b>Подсказка:</b> начните с первого броска — «О» или «Р».
+    Дальше каждый результат разветвляется ещё на два. Попробуйте нарисовать дерево.
+  </div>
+
+  <details>
+    <summary>Показать ответ (после обсуждения)</summary>
+    <div class="outcomes">
+      <div class="outcome">ООО</div>
+      <div class="outcome">ООР</div>
+      <div class="outcome">ОРО</div>
+      <div class="outcome">ОРР</div>
+      <div class="outcome">РОО</div>
+      <div class="outcome">РОР</div>
+      <div class="outcome">РРО</div>
+      <div class="outcome">РРР</div>
+    </div>
+    <p>Всего <b>8</b> элементарных событий.</p>
+  </details>
+</section>
+
+<!-- ================= СЛАЙД 17. Задача из учебника: монета ================= -->
+<section class="slide" data-num="17">
+  <span class="slide-num">Слайд 17</span>
+  <h2>Задача из учебника: монета</h2>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">№238–240</div>
+    </div>
+    <p><b>№238.</b> Монету бросают 3 раза. Выпишите все элементарные события.</p>
+    <p><b>№239.</b> Во сколько раз число событий при 3 бросках больше, чем при 2?
+       А при 4 бросках? А при 10?</p>
+    <p><b>№240.</b> Монету бросают до тех пор, пока не выпадет орёл.
+       Запишите несколько элементарных событий.
+       Сколько всего событий в этом опыте?</p>
+    <details>
+      <summary>Показать ответы</summary>
+      <p><b>238.</b> 8 событий: ООО, ООР, ОРО, ОРР, РОО, РОР, РРО, РРР.</p>
+      <p><b>239.</b> 3 броска: 8, 2 броска: 4 → <b>в 2 раза</b>.
+         4 броска: 16. 10 бросков: 1024.</p>
+      <p><b>240.</b> О, РО, РРО, РРРО, … — <b>бесконечно много</b> событий.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 18. Вероятность элементарного события ================= -->
+<section class="slide" data-num="18">
+  <span class="slide-num">Слайд 18</span>
+  <h2>Вероятность элементарного события</h2>
+
+  <div class="plate plate-mint">
+    <span class="plate-title">Вопрос</span>
+    <p>Если кубик правильный, насколько вероятно выпадение каждой конкретной грани?</p>
+  </div>
+
+  <div class="plate plate-teal">
+    <span class="plate-title">Ответ</span>
+    <p>У каждой грани <b>одинаковый шанс</b>.</p>
+  </div>
+
+  <div class="big-formula">
+    <div class="f-line">\(P = \dfrac{1}{N}\)</div>
+    <p>где \(N\) — число равновозможных элементарных событий</p>
+  </div>
+
+  <div class="hint">
+    <b>Для кубика:</b> \(N = 6\), значит
+    \(P(1) = P(2) = \dots = P(6) = \dfrac{1}{6}\).
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 19. Почему 1/N ================= -->
+<section class="slide" data-num="19">
+  <span class="slide-num">Слайд 19</span>
+  <h2>Почему именно \(1/N\)?</h2>
+
+  <div class="plate plate-lime">
+    <span class="plate-title">Аналогия: шоколадка</span>
+    <p>Шоколадка разделена на 6 одинаковых кусочков 🍫.</p>
+    <div class="chocolate">
+      <div class="piece">1</div>
+      <div class="piece">2</div>
+      <div class="piece">3</div>
+      <div class="piece">4</div>
+      <div class="piece">5</div>
+      <div class="piece">6</div>
+    </div>
+    <p>Если случайно выбрать один кусочек, у каждого шанс \(\dfrac{1}{6}\).</p>
+  </div>
+
+  <div class="hint">
+    <b>То же самое с кубиком:</b> 6 равновозможных граней → шанс каждой \(\dfrac{1}{6}\).
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 20. Заполни таблицу ================= -->
+<section class="slide" data-num="20">
+  <span class="slide-num">Слайд 20</span>
+  <h2>Заполни таблицу</h2>
+
+  <div class="plate plate-mint">
+    <table style="width:100%; border-collapse:collapse; font-size:calc(18px * var(--text-scale));">
+      <tr style="background:var(--light);">
+        <th style="padding:12px; border:2px solid var(--border); text-align:left;">Опыт</th>
+        <th style="padding:12px; border:2px solid var(--border);">Число исходов</th>
+        <th style="padding:12px; border:2px solid var(--border);">Вероятность каждого</th>
+      </tr>
+      <tr>
+        <td style="padding:12px; border:2px solid var(--border);">Монета</td>
+        <td style="padding:12px; border:2px solid var(--border); text-align:center;">?</td>
+        <td style="padding:12px; border:2px solid var(--border); text-align:center;">?</td>
+      </tr>
+      <tr>
+        <td style="padding:12px; border:2px solid var(--border);">Кубик</td>
+        <td style="padding:12px; border:2px solid var(--border); text-align:center;">?</td>
+        <td style="padding:12px; border:2px solid var(--border); text-align:center;">?</td>
+      </tr>
+      <tr>
+        <td style="padding:12px; border:2px solid var(--border);">Рулетка с 10 секторами</td>
+        <td style="padding:12px; border:2px solid var(--border); text-align:center;">?</td>
+        <td style="padding:12px; border:2px solid var(--border); text-align:center;">?</td>
+      </tr>
+      <tr>
+        <td style="padding:12px; border:2px solid var(--border);">Выбор из 20 номеров</td>
+        <td style="padding:12px; border:2px solid var(--border); text-align:center;">?</td>
+        <td style="padding:12px; border:2px solid var(--border); text-align:center;">?</td>
+      </tr>
+    </table>
+  </div>
+
+  <details>
+    <summary>Показать ответы</summary>
+    <table style="width:100%; border-collapse:collapse; font-size:calc(17px * var(--text-scale)); margin-top:10px;">
+      <tr style="background:var(--light);">
+        <th style="padding:10px; border:2px solid var(--border);">Опыт</th>
+        <th style="padding:10px; border:2px solid var(--border);">Исходов</th>
+        <th style="padding:10px; border:2px solid var(--border);">Вероятность</th>
+      </tr>
+      <tr><td style="padding:10px; border:2px solid var(--border);">Монета</td><td style="padding:10px; border:2px solid var(--border); text-align:center;">2</td><td style="padding:10px; border:2px solid var(--border); text-align:center;">\(\dfrac{1}{2}\)</td></tr>
+      <tr><td style="padding:10px; border:2px solid var(--border);">Кубик</td><td style="padding:10px; border:2px solid var(--border); text-align:center;">6</td><td style="padding:10px; border:2px solid var(--border); text-align:center;">\(\dfrac{1}{6}\)</td></tr>
+      <tr><td style="padding:10px; border:2px solid var(--border);">Рулетка</td><td style="padding:10px; border:2px solid var(--border); text-align:center;">10</td><td style="padding:10px; border:2px solid var(--border); text-align:center;">\(\dfrac{1}{10}\)</td></tr>
+      <tr><td style="padding:10px; border:2px solid var(--border);">20 номеров</td><td style="padding:10px; border:2px solid var(--border); text-align:center;">20</td><td style="padding:10px; border:2px solid var(--border); text-align:center;">\(\dfrac{1}{20}\)</td></tr>
+    </table>
+  </details>
+</section>
+
+<!-- ================= СЛАЙД 21. Связь вида события с вероятностью ================= -->
+<section class="slide" data-num="21">
+  <span class="slide-num">Слайд 21</span>
+  <h2>Связь вида события с вероятностью</h2>
+
+  <p>Теперь, когда мы знаем и виды событий, и что такое вероятность,
+     посмотрим, как они связаны.</p>
+
+  <div class="plate plate-green">
+    <table style="width:100%; border-collapse:collapse; font-size:calc(19px * var(--text-scale));">
+      <tr style="background:var(--light);">
+        <th style="padding:14px; border:2px solid var(--border); text-align:left;">Вид события</th>
+        <th style="padding:14px; border:2px solid var(--border);">Вероятность</th>
+      </tr>
+      <tr>
+        <td style="padding:14px; border:2px solid var(--border);">Достоверное</td>
+        <td style="padding:14px; border:2px solid var(--border); text-align:center; font-weight:900;">\(1\)</td>
+      </tr>
+      <tr>
+        <td style="padding:14px; border:2px solid var(--border);">Невозможное</td>
+        <td style="padding:14px; border:2px solid var(--border); text-align:center; font-weight:900;">\(0\)</td>
+      </tr>
+      <tr>
+        <td style="padding:14px; border:2px solid var(--border);">Случайное</td>
+        <td style="padding:14px; border:2px solid var(--border); text-align:center; font-weight:900;">от \(0\) до \(1\)</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="hint">
+    <b>Смысл:</b> невозможно → \(0\);
+    может произойти → между \(0\) и \(1\);
+    обязательно произойдёт → \(1\).
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 22. Равновозможные события ================= -->
+<section class="slide" data-num="22">
+  <span class="slide-num">Слайд 22</span>
+  <h2>Что значит «равновозможные»?</h2>
+
+  <div class="grid grid-2">
+    <div class="plate plate-mint">
+      <span class="plate-title">Правильная монета</span>
+      <div class="coin-row">
+        <div class="coin">О</div>
+        <div class="coin">Р</div>
+      </div>
+      <p>Шансы одинаковы.</p>
+    </div>
+    <div class="plate plate-teal">
+      <span class="plate-title">Правильный кубик</span>
+      <div class="dice-row">
+        <div class="dice-face">1</div>
+        <div class="dice-face">2</div>
+        <div class="dice-face">3</div>
+      </div>
+      <p>Шансы одинаковы.</p>
+    </div>
+  </div>
+
+  <div class="plate plate-green">
+    <span class="plate-title">Определение</span>
+    <p>Элементарные события называют <b>равновозможными</b>,
+       если <b>ни одно из них не имеет преимущества</b> перед другими.</p>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 23. Ловушка 1 ================= -->
+<section class="slide" data-num="23">
+  <span class="slide-num">Слайд 23</span>
+  <h2>А всегда ли исходы равновозможны?</h2>
+
+  <div class="plate plate-orange">
+    <span class="plate-title">Ловушка 1</span>
+    <p>В мешке <b>8 красных</b> шаров и <b>2 синих</b>. Наугад вытягивают один шар.</p>
+  </div>
+
+  <div class="question-slide">
+    <div class="big-q" style="font-size:calc(1.4rem * var(--text-scale)); margin:20px 0;">
+      Равновозможны ли события<br>
+      <em>«вытянуть красный»</em> и <em>«вытянуть синий»</em>?
+    </div>
+  </div>
+
+  <details>
+    <summary>Показать ответ</summary>
+    <p class="answer">Нет!</p>
+    <p>Красных шаров 8, синих — 2. Шанс вытянуть красный <b>больше</b>.</p>
+    <p>Значит, эти события <b>не равновозможны</b>.</p>
+  </details>
+</section>
+
+<!-- ================= СЛАЙД 24. Ловушка 2 ================= -->
+<section class="slide" data-num="24">
+  <span class="slide-num">Слайд 24</span>
+  <h2>Ещё одна ловушка</h2>
+
+  <div class="grid grid-2">
+    <div class="plate plate-mint">
+      <span class="plate-title">А. Правильный кубик</span>
+      <div class="dice-row">
+        <div class="dice-face">1</div>
+        <div class="dice-face">2</div>
+        <div class="dice-face">3</div>
+      </div>
+      <p>Все грани одинаковые</p>
+    </div>
+    <div class="plate plate-orange">
+      <span class="plate-title">Б. Кубик с утяжелённой гранью 6</span>
+      <div class="dice-row">
+        <div class="dice-face">1</div>
+        <div class="dice-face">2</div>
+        <div class="dice-face">6⚖</div>
+      </div>
+      <p>Грань 6 выпадает чаще</p>
+    </div>
+  </div>
+
+  <div class="question-slide">
+    <div class="big-q" style="font-size:calc(1.4rem * var(--text-scale)); margin:20px 0;">
+      Можно ли в <em>обоих</em> случаях считать исходы равновозможными?
+    </div>
+  </div>
+
+  <details>
+    <summary>Показать ответ</summary>
+    <p class="answer">Нет.</p>
+    <p>В случае А — да, все 6 равновозможны.</p>
+    <p>В случае Б — нет: грань 6 имеет преимущество.</p>
+    <p><b>Равновозможность определяется условиями опыта.</b></p>
+  </details>
+</section>
+
+<!-- ================= СЛАЙД 25. Сумма вероятностей ================= -->
+<section class="slide" data-num="25">
+  <span class="slide-num">Слайд 25</span>
+  <h2>Посчитаем сумму вероятностей</h2>
+
+  <p>Посчитайте сумму вероятностей <b>всех</b> элементарных событий
+     для каждого опыта. Что замечаете?</p>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">Опыт 1. Монета</div>
+    </div>
+    <p>\(P(\text{орёл}) = \dfrac{1}{2}\), \(P(\text{решка}) = \dfrac{1}{2}\)</p>
+    <p>Сумма: ______________________</p>
+    <details>
+      <summary>Показать ответ</summary>
+      <p>\(\dfrac{1}{2} + \dfrac{1}{2} = 1\)</p>
+    </details>
+  </div>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">Опыт 2. Кубик</div>
+    </div>
+    <p>Каждое из 6 событий имеет вероятность \(\dfrac{1}{6}\).</p>
+    <p>Сумма: ______________________</p>
+    <details>
+      <summary>Показать ответ</summary>
+      <p>\(\dfrac{1}{6} \cdot 6 = 1\)</p>
+    </details>
+  </div>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">Опыт 3. Рулетка с 10 секторами</div>
+    </div>
+    <p>Каждое событие — \(\dfrac{1}{10}\).</p>
+    <p>Сумма: ______________________</p>
+    <details>
+      <summary>Показать ответ</summary>
+      <p>\(\dfrac{1}{10} \cdot 10 = 1\)</p>
+    </details>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 26. Правило: сумма = 1 ================= -->
+<section class="slide" data-num="26">
+  <span class="slide-num">Слайд 26</span>
+  <h2>Правило: сумма вероятностей = 1</h2>
+
+  <div class="plate plate-green">
+    <span class="plate-title">Правило</span>
+    <p><b>Сумма вероятностей всех элементарных событий случайного опыта равна 1.</b></p>
+    <p class="formula">\(P(a_1) + P(a_2) + \dots + P(a_n) = 1\)</p>
+  </div>
+
+  <div class="hint">
+    <b>Важно:</b> это правило работает <b>не только для равновозможных</b> событий!
+    Оно верно <i>для любого</i> случайного опыта.
+  </div>
+
+  <div class="plate plate-orange">
+    <span class="plate-title">Пример с неравновозможными событиями</span>
+    <p>В мешке 3 красных и 1 синий шар. Вероятности разные:</p>
+    <p class="formula">\(P(\text{кр}) = 0{,}75,\quad P(\text{син}) = 0{,}25\)</p>
+    <p>Сумма: \(0{,}75 + 0{,}25 = 1\) ✅</p>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 27. Формула для неравновероятных ================= -->
+<section class="slide" data-num="27">
+  <span class="slide-num">Слайд 27</span>
+  <h2>Вероятность неравновероятных событий</h2>
+
+  <div class="plate plate-mint">
+    <span class="plate-title">Как найти вероятность, если шансы разные?</span>
+    <p>Если элементарные события <b>не равновозможны</b>, вероятность каждого
+       находят <b>по-другому</b> — через наблюдения или частоту:</p>
+    <p class="formula">\(P(a) = \dfrac{k}{n}\)</p>
+    <p>\(n\) — сколько раз провели опыт;</p>
+    <p>\(k\) — сколько раз произошло событие \(a\).</p>
+  </div>
+
+  <div class="hint">
+    <b>Пример:</b> подбросили утяжелённый кубик 100 раз, грань 6 выпала 30 раз.
+    <br>\(P(\text{выпала 6}) = \dfrac{30}{100} = 0{,}3\).
+  </div>
+
+  <div class="hint">
+    <b>Позже</b> мы узнаем, что при большом числе испытаний эта частота
+    <i>приближается</i> к настоящей вероятности. Это называется
+    <b>статистической вероятностью</b>.
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 28. «Собери единицу» ================= -->
+<section class="slide" data-num="28">
+  <span class="slide-num">Слайд 28</span>
+  <h2>Задание «Собери единицу»</h2>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">Задача 1</div>
+    </div>
+    <p>У опыта 4 равновозможных элементарных исхода.
+       Какова вероятность каждого?</p>
+    <details>
+      <summary>Показать ответ</summary>
+      <p>\(P = \dfrac{1}{4}\)</p>
+      <p>Проверка: \(\dfrac{1}{4} + \dfrac{1}{4} + \dfrac{1}{4} + \dfrac{1}{4} = 1\) ✅</p>
+    </details>
+  </div>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">Задача 2</div>
+    </div>
+    <p>У опыта 5 равновозможных исходов. Какова вероятность каждого?</p>
+    <details>
+      <summary>Показать ответ</summary>
+      <p>\(P = \dfrac{1}{5}\)</p>
+    </details>
+  </div>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">Задача 3</div>
+    </div>
+    <p>У опыта 8 равновозможных исходов. Какова вероятность каждого?</p>
+    <details>
+      <summary>Показать ответ</summary>
+      <p>\(P = \dfrac{1}{8}\)</p>
+    </details>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 29. Схема всей темы ================= -->
+<section class="slide" data-num="29">
+  <span class="slide-num">Слайд 29</span>
+  <h2>Что мы уже умеем?</h2>
+
+  <div class="chain">
+    <div class="step">Случайный опыт</div>
+    <div class="arrow">↓</div>
+    <div class="step">Возможные результаты</div>
+    <div class="arrow">↓</div>
+    <div class="step">Элементарные события</div>
+    <div class="arrow">↓</div>
+    <div class="step">Виды событий (достоверное / невозможное / случайное)</div>
+    <div class="arrow">↓</div>
+    <div class="step">Равновозможные элементарные события</div>
+    <div class="arrow">↓</div>
+    <div class="step">Вероятность каждого = \(\dfrac{1}{N}\)</div>
+    <div class="arrow">↓</div>
+    <div class="step">Сумма вероятностей = 1</div>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 30. Практика ================= -->
+<section class="slide" data-num="30">
+  <span class="slide-num">Слайд 30</span>
+  <h2>Практика</h2>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">Практика 1. Монета</div>
+    </div>
+    <p>Монету бросают один раз.</p>
+    <ol>
+      <li>Сколько элементарных событий?</li>
+      <li>Какова вероятность каждого?</li>
+      <li>Равновозможны ли они?</li>
+    </ol>
+    <details>
+      <summary>Показать ответ</summary>
+      <p>1. 2 события: «орёл» и «решка».</p>
+      <p>2. \(P = \dfrac{1}{2}\) каждое.</p>
+      <p>3. Да, равновозможны.</p>
+    </details>
+  </div>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">Практика 2. Кубик</div>
+    </div>
+    <p>Бросают правильный кубик. Найдите вероятность события «выпало 5».</p>
+    <details>
+      <summary>Показать ответ</summary>
+      <p class="answer">\(P = \dfrac{1}{6}\)</p>
+    </details>
+  </div>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">Практика 3. Карточки</div>
+    </div>
+    <p>В коробке карточки: 1, 2, 3, 4, 5. Наугад вытягивают одну.</p>
+    <ol>
+      <li>Сколько элементарных событий?</li>
+      <li>Какие они?</li>
+      <li>Равновозможны ли они?</li>
+      <li>Вероятность каждого?</li>
+    </ol>
+    <details>
+      <summary>Показать ответ</summary>
+      <p>1. 5 событий.</p>
+      <p>2. «Вытянули 1», …, «вытянули 5».</p>
+      <p>3. Да, все карточки одинаковые.</p>
+      <p>4. \(P = \dfrac{1}{5}\) каждое.</p>
+    </details>
+  </div>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">Практика 4. Найди ошибку</div>
+    </div>
+    <p>Ученик написал:</p>
+    <div class="hint" style="margin:14px 0;">
+      «При бросании кубика вероятность выпадения чётного числа равна \(\dfrac{1}{6}\),
+      потому что это одно событие».
+    </div>
+    <p><b>Что не так?</b></p>
+    <details>
+      <summary>Показать ответ</summary>
+      <p class="answer">Ошибка:</p>
+      <p>«Чётное число» — <b>составное</b> событие, потому что ему соответствуют
+         сразу <b>3 исхода</b>: 2, 4, 6.</p>
+      <p>Значит, формула \(\dfrac{1}{6}\) здесь не подходит.
+         Как найти вероятность такого события — узнаем на следующем уроке.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 31. Задачи из учебника (часть 1) ================= -->
+<section class="slide" data-num="31">
+  <span class="slide-num">Слайд 31</span>
+  <h2>Задачи из учебника (часть 1)</h2>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">№232. Числа от 1 до 100</div>
+    </div>
+    <p>Выбирают два различных числа. Какие события невозможные, какие — достоверные?</p>
+    <ul>
+      <li>A. Одно из чисел больше другого;</li>
+      <li>B. Одно из чисел больше другого на 100;</li>
+      <li>C. Сумма чисел — положительное число;</li>
+      <li>D. Одно из чисел меньше половины другого.</li>
+    </ul>
+    <details>
+      <summary>Показать ответ</summary>
+      <p><b>Достоверные:</b> A (числа различны), C (все числа положительные).</p>
+      <p><b>Невозможное:</b> B (разность не может быть 100 при диапазоне 1–100).</p>
+      <p><b>Не достоверное, не невозможное:</b> D — может случиться, а может нет.</p>
+    </details>
+  </div>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">№233. Андрей и Борис в очереди</div>
+    </div>
+    <p>Сколькими способами они могут расположиться друг за другом? Выпишите все способы.</p>
+    <details>
+      <summary>Показать ответ</summary>
+      <p class="answer">2 способа: АБ, БА.</p>
+    </details>
+  </div>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">№234. Три сорта мороженого</div>
+    </div>
+    <p>Андрей и Борис покупают по одной порции из трёх сортов:
+       сливочное (С), шоколадное (Ш), клубничное (К).
+       Выпишите элементарные события в виде таблицы. Сколько их всего?</p>
+    <details>
+      <summary>Показать ответ</summary>
+      <p class="answer">Всего 9 элементарных событий:</p>
+      <p>СС, СШ, СК, ШС, ШШ, ШК, КС, КШ, КК.</p>
+    </details>
+  </div>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">№235. Трое в очереди</div>
+    </div>
+    <p>Андрей (А), Борис (Б) и Владимир (В) в очереди.
+       Сколькими способами они могут расположиться?</p>
+    <details>
+      <summary>Показать ответ</summary>
+      <p class="answer">\(3 \cdot 2 \cdot 1 = 6\) способов:</p>
+      <p>АБВ, АВБ, БАВ, БВА, ВАБ, ВБА.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 32. Задачи из учебника (часть 2) ================= -->
+<section class="slide" data-num="32">
+  <span class="slide-num">Слайд 32</span>
+  <h2>Задачи из учебника (часть 2)</h2>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">№236. Кубик дважды — сумма очков</div>
+    </div>
+    <p>Кубик подбрасывают дважды. Закрасьте события, при которых в сумме выпадет:</p>
+    <ul>
+      <li>а) менее 4 очков;</li>
+      <li>б) ровно 7 очков;</li>
+      <li>в) ровно 11 очков;</li>
+      <li>г) чётное число очков.</li>
+    </ul>
+    <details>
+      <summary>Показать ответы</summary>
+      <p><b>а) менее 4:</b> (1;1), (1;2), (2;1) — <b>3 события</b>.</p>
+      <p><b>б) ровно 7:</b> (1;6), (2;5), (3;4), (4;3), (5;2), (6;1) — <b>6 событий</b>.</p>
+      <p><b>в) ровно 11:</b> (5;6), (6;5) — <b>2 события</b>.</p>
+      <p><b>г) чётное число:</b> 18 событий.</p>
+    </details>
+  </div>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">№241. Встреча «Математик» — «Физик»</div>
+    </div>
+    <p>Встреча проводится до двух побед одной из команд.
+       М — победа «Математика», Ф — победа «Физика».</p>
+    <ul>
+      <li>а) выпишите все элементарные события;</li>
+      <li>б) выпишите события, при которых выигрывает «Физик»;</li>
+      <li>в) какой буквой оканчивается запись событий, где победил «Математик»?</li>
+      <li>г) какое наибольшее число матчей может состояться?</li>
+    </ul>
+    <details>
+      <summary>Показать ответы</summary>
+      <p><b>а)</b> ММ, МФМ, МФФ, ФММ, ФМФ, ФФ — <b>6 событий</b>.</p>
+      <p><b>б)</b> МФФ, ФМФ, ФФ.</p>
+      <p><b>в)</b> ММ, МФМ, ФММ — заканчиваются на М.</p>
+      <p><b>г)</b> 3 матча максимум.</p>
+    </details>
+  </div>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">№242. Три детали</div>
+    </div>
+    <p>В ящике 3 детали: две исправные (\(a\) и \(b\)) и одна бракованная (\(c\)).
+       Извлекают по одной, пока не найдут бракованную.</p>
+    <ul>
+      <li>а) является ли \(cab\) элементарным событием?</li>
+      <li>б) какими буквами может заканчиваться запись?</li>
+      <li>в) выпишите все элементарные события.</li>
+    </ul>
+    <details>
+      <summary>Показать ответы</summary>
+      <p><b>а)</b> Нет: после \(c\) опыт уже закончился бы.</p>
+      <p><b>б)</b> Запись всегда заканчивается на \(c\).</p>
+      <p><b>в)</b> \(c\), \(ac\), \(bc\), \(abc\), \(bac\) — <b>5 событий</b>.</p>
+    </details>
+  </div>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">№243–245. Кубик трижды</div>
+    </div>
+    <p><b>№243.</b> Сколько всего элементарных событий при трёх бросках кубика?</p>
+    <p><b>№244.</b> Сумма равна: а) 3; б) 4; в) 2.</p>
+    <p><b>№245.</b> Сумма больше: а) 17; б) 16; в) 15.</p>
+    <details>
+      <summary>Показать ответы</summary>
+      <p><b>243.</b> \(6 \cdot 6 \cdot 6 = 216\).</p>
+      <p><b>244.</b> а) 3 = 1+1+1 → <b>1</b>; б) 4 = 1+1+2 (3 перестановки) → <b>3</b>; в) 2 → <b>0</b>.</p>
+      <p><b>245.</b> а) 18 = 6+6+6 → <b>1</b>; б) 17 и 18 → <b>4</b>; в) 16, 17, 18 → <b>10</b>.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 33. Задачи из учебника (часть 3) ================= -->
+<section class="slide" data-num="33">
+  <span class="slide-num">Слайд 33</span>
+  <h2>Задачи из учебника (часть 3)</h2>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">№249–250. Неравновозможный кубик</div>
+    </div>
+    <p>Игральная кость несимметрична. Даны вероятности выпадения граней.</p>
+    <table style="width:100%; border-collapse:collapse; font-size:calc(16px * var(--text-scale)); margin:14px 0;">
+      <tr style="background:var(--light);">
+        <th style="padding:8px; border:2px solid var(--border);">Очки</th>
+        <th style="padding:8px; border:2px solid var(--border);">1</th>
+        <th style="padding:8px; border:2px solid var(--border);">2</th>
+        <th style="padding:8px; border:2px solid var(--border);">3</th>
+        <th style="padding:8px; border:2px solid var(--border);">4</th>
+        <th style="padding:8px; border:2px solid var(--border);">5</th>
+        <th style="padding:8px; border:2px solid var(--border);">6</th>
+      </tr>
+      <tr>
+        <td style="padding:8px; border:2px solid var(--border); font-weight:800;">P</td>
+        <td style="padding:8px; border:2px solid var(--border); text-align:center;">\(\frac{1}{4}\)</td>
+        <td style="padding:8px; border:2px solid var(--border); text-align:center;">\(\frac{1}{12}\)</td>
+        <td style="padding:8px; border:2px solid var(--border); text-align:center;">\(\frac{1}{6}\)</td>
+        <td style="padding:8px; border:2px solid var(--border); text-align:center;">?</td>
+        <td style="padding:8px; border:2px solid var(--border); text-align:center;">\(\frac{1}{12}\)</td>
+        <td style="padding:8px; border:2px solid var(--border); text-align:center;">\(\frac{1}{4}\)</td>
+      </tr>
+    </table>
+    <p>Найдите вероятность выпадения 4 очков.</p>
+    <details>
+      <summary>Показать ответ</summary>
+      <p>Сумма = 1. \(\frac{1}{4} + \frac{1}{12} + \frac{1}{6} + x + \frac{1}{12} + \frac{1}{4} = 1\)</p>
+      <p>\(\frac{10}{12} + x = 1\)</p>
+      <p class="answer">\(x = \frac{2}{12} = \frac{1}{6}\).</p>
+    </details>
+  </div>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">№251–253. Равновозможные события</div>
+    </div>
+    <p><b>№251.</b> Вероятность каждого, если событий: а) 25; б) 17; в) 100.</p>
+    <p><b>№252.</b> Сколько событий, если вероятность каждого:
+       а) \(\frac{1}{3}\); б) 0,1; в) 0,125; г) \(\frac{1}{k}\)?</p>
+    <p><b>№253.</b> В каком из двух опытов вероятность элементарного события больше?</p>
+    <details>
+      <summary>Показать ответы</summary>
+      <p><b>251.</b> а) \(\frac{1}{25}\); б) \(\frac{1}{17}\); в) \(\frac{1}{100}\).</p>
+      <p><b>252.</b> а) 3; б) 10; в) 8; г) \(k\).</p>
+      <p><b>253.</b> а) в первом опыте событий <i>больше</i> → вероятность <i>меньше</i>;
+         б) в первом <i>меньше</i> событий → вероятность <i>больше</i>;
+         в) одинаковые.</p>
+    </details>
+  </div>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">№254. Монета дважды</div>
+    </div>
+    <p>Монету бросают 2 раза. Равновозможны ли события ОО, РО, ОР, РР?
+       Найдите их вероятности.</p>
+    <details>
+      <summary>Показать ответ</summary>
+      <p class="answer">Да, все равновозможны. \(P = \frac{1}{4}\) каждое.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 34. Финальная проверка ================= -->
+<section class="slide" data-num="34">
+  <span class="slide-num">Слайд 34</span>
+  <h2>Финальная проверка</h2>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">1. Что такое случайный опыт?</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="true">Результат нельзя предсказать</button>
+      <button class="quiz-btn" data-ans="false">Результат известен заранее</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">2. Что такое элементарное событие?</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">Все результаты вместе</button>
+      <button class="quiz-btn" data-ans="true">Один конкретный результат</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">3. Сколько элементарных событий при броске кубика?</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">2</button>
+      <button class="quiz-btn" data-ans="true">6</button>
+      <button class="quiz-btn" data-ans="false">12</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">4. Равновозможные — это…</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="true">Одинаковые шансы</button>
+      <button class="quiz-btn" data-ans="false">Разные шансы</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">5. Если всего 8 равновозможных исходов, вероятность каждого:</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">\(\dfrac{1}{2}\)</button>
+      <button class="quiz-btn" data-ans="true">\(\dfrac{1}{8}\)</button>
+      <button class="quiz-btn" data-ans="false">\(\dfrac{1}{4}\)</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">6. Событие «выпадет 7» при броске кубика — какое?</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">Достоверное</button>
+      <button class="quiz-btn" data-ans="true">Невозможное</button>
+      <button class="quiz-btn" data-ans="false">Случайное</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 35. Рефлексия ================= -->
+<section class="slide" data-num="35">
+  <span class="slide-num">Слайд 35</span>
+  <h2>Рефлексия</h2>
+
+  <div class="plate plate-mint">
+    <span class="plate-title">Сегодня я научился…</span>
+    <ul style="list-style:none; margin-left:0;">
+      <li>🟢 перечислять элементарные исходы;</li>
+      <li>🟢 отличать элементарное событие от составного;</li>
+      <li>🟢 различать достоверные, невозможные и случайные события;</li>
+      <li>🟢 находить вероятность элементарного события;</li>
+      <li>🟢 понимать, что такое равновозможные исходы.</li>
+    </ul>
+  </div>
+
+  <div class="hint">
+    <b>Домашнее задание:</b>
+    <ul>
+      <li>Выучить определения: случайный опыт, элементарное событие, равновозможные события;</li>
+      <li>Выписать все элементарные события при бросании монеты 2 раза и кубика 1 раз;</li>
+      <li>Придумать пример опыта, где исходы <b>не равновозможны</b>.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= НАВИГАЦИЯ ================= -->
+<div class="nav">
+  <button id="prev">← Назад</button>
+  <button id="next">Вперёд →</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const prevBtn = document.getElementById('prev');
+  const nextBtn = document.getElementById('next');
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  let current = 0;
+
+  function showSlide(index){
+    slides.forEach((s, i) => s.classList.toggle('active', i === index));
+    current = index;
+    prevBtn.disabled = (index === 0);
+    nextBtn.disabled = (index === slides.length - 1);
+    counter.textContent = (index + 1) + ' / ' + slides.length;
+    progress.style.width = ((index + 1) / slides.length * 100) + '%';
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  prevBtn.addEventListener('click', () => { if(current > 0) showSlide(current - 1); });
+  nextBtn.addEventListener('click', () => { if(current < slides.length - 1) showSlide(current + 1); });
+
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'ArrowLeft' && current > 0) showSlide(current - 1);
+    if(e.key === 'ArrowRight' && current < slides.length - 1) showSlide(current + 1);
+  });
+
+  showSlide(0);
+
+  /* ---------- тест ---------- */
+  document.querySelectorAll('.quiz-item').forEach(item => {
+    const correct = item.dataset.correct === 'true';
+    const feedback = item.querySelector('.quiz-feedback');
+    const buttons = item.querySelectorAll('.quiz-btn');
+
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        buttons.forEach(b => b.disabled = true);
+        const userAns = btn.dataset.ans === 'true';
+
+        if (userAns === correct) {
+          btn.classList.add('correct');
+          feedback.textContent = '✔ Верно!';
+          feedback.className = 'quiz-feedback ok';
+        } else {
+          btn.classList.add('wrong');
+          buttons.forEach(b => {
+            if ((b.dataset.ans === 'true') === correct) b.classList.add('correct');
+          });
+          feedback.textContent = '✘ Неверно. Правильный ответ подсвечен.';
+          feedback.className = 'quiz-feedback no';
+        }
+      });
+    });
+  });
+
+  /* ---------- сортировка ---------- */
+  document.querySelectorAll('.sort-container').forEach(container => {
+    const correctIndex = parseInt(container.dataset.correct, 10);
+    const cards = container.querySelectorAll('.sort-card');
+    let answered = false;
+
+    cards.forEach((card, idx) => {
+      card.addEventListener('click', () => {
+        if (answered) return;
+
+        if (idx === correctIndex) {
+          card.classList.add('correct');
+          const fb = document.getElementById('fb-sort1');
+          if (fb) {
+            fb.style.display = 'block';
+            fb.innerHTML = '<b>✔ Верно!</b> Неравенство \(-3 \leq x < 5\) соответствует промежутку \([-3;\ 5)\).';
+          }
+        } else {
+          card.classList.add('wrong');
+          cards[correctIndex].classList.add('correct');
+          const fb = document.getElementById('fb-sort1');
+          if (fb) {
+            fb.style.display = 'block';
+            fb.innerHTML = '<b>✘ Неверно.</b> Правильный ответ подсвечен зелёным.';
+          }
+        }
+        answered = true;
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
