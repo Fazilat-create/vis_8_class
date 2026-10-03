@@ -1956,6 +1956,9 @@
 </div>
 
 <script>
+  /* ============================================================
+     НАВИГАЦИЯ С ПОДДЕРЖКОЙ ХЭША (#slide-N)
+     ============================================================ */
   const slides = document.querySelectorAll('.slide');
   const prevBtn = document.getElementById('prev');
   const nextBtn = document.getElementById('next');
@@ -1971,6 +1974,26 @@
     counter.textContent = (index + 1) + ' / ' + slides.length;
     progress.style.width = ((index + 1) / slides.length * 100) + '%';
     window.scrollTo({top:0, behavior:'smooth'});
+
+    /* Обновляем хэш в адресной строке */
+    const num = slides[index].dataset.num;
+    if (num && location.hash !== '#slide-' + num) {
+      history.replaceState(null, '', '#slide-' + num);
+    }
+  }
+
+  /* Читаем хэш при загрузке и при его изменении */
+  function openFromHash(){
+    const m = location.hash.match(/slide-(\d+)/);
+    if (m) {
+      const n = parseInt(m[1], 10);
+      let idx = -1;
+      slides.forEach((s, i) => {
+        if (parseInt(s.dataset.num, 10) === n) idx = i;
+      });
+      if (idx >= 0) { showSlide(idx); return; }
+    }
+    showSlide(0);
   }
 
   prevBtn.addEventListener('click', () => { if(current > 0) showSlide(current - 1); });
@@ -1981,9 +2004,12 @@
     if(e.key === 'ArrowRight' && current < slides.length - 1) showSlide(current + 1);
   });
 
-  showSlide(0);
+  window.addEventListener('hashchange', openFromHash);
 
-  /* ---------- тест ---------- */
+  /* Запуск */
+  openFromHash();
+
+  /* ---------- тесты ---------- */
   document.querySelectorAll('.quiz-item').forEach(item => {
     const correct = item.dataset.correct === 'true';
     const feedback = item.querySelector('.quiz-feedback');
