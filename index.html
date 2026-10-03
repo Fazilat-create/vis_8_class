@@ -1957,7 +1957,42 @@
 
 <script>
   /* ============================================================
-     НАВИГАЦИЯ С ПОДДЕРЖКОЙ ХЭША (#slide-N)
+     1) ФИЛЬТР СЛАЙДОВ ПО QUERY-ПАРАМЕТРУ
+     Примеры:
+       ?slides=1-3        → слайды 1, 2, 3
+       ?slides=1,5,8      → слайды 1, 5, 8
+       ?slides=10-15      → слайды с 10 по 15
+       ?slides=1-3,7,9    → комбинация
+     ============================================================ */
+  function applySlideFilter(){
+    const params = new URLSearchParams(location.search);
+    const filter = params.get('slides');
+    if (!filter) return;
+
+    const nums = new Set();
+    filter.split(',').forEach(part => {
+      part = part.trim();
+      if (part.includes('-')) {
+        const [a, b] = part.split('-').map(n => parseInt(n, 10));
+        if (!isNaN(a) && !isNaN(b)) {
+          for (let i = a; i <= b; i++) nums.add(i);
+        }
+      } else {
+        const n = parseInt(part, 10);
+        if (!isNaN(n)) nums.add(n);
+      }
+    });
+
+    if (nums.size === 0) return;
+
+    document.querySelectorAll('.slide').forEach(s => {
+      const n = parseInt(s.dataset.num, 10);
+      if (!nums.has(n)) s.remove();
+    });
+  }
+
+  /* ============================================================
+     2) НАВИГАЦИЯ С ПОДДЕРЖКОЙ ХЭША (#slide-N)
      ============================================================ */
   const slides = document.querySelectorAll('.slide');
   const prevBtn = document.getElementById('prev');
@@ -1975,14 +2010,12 @@
     progress.style.width = ((index + 1) / slides.length * 100) + '%';
     window.scrollTo({top:0, behavior:'smooth'});
 
-    /* Обновляем хэш в адресной строке */
     const num = slides[index].dataset.num;
     if (num && location.hash !== '#slide-' + num) {
       history.replaceState(null, '', '#slide-' + num);
     }
   }
 
-  /* Читаем хэш при загрузке и при его изменении */
   function openFromHash(){
     const m = location.hash.match(/slide-(\d+)/);
     if (m) {
@@ -2006,10 +2039,13 @@
 
   window.addEventListener('hashchange', openFromHash);
 
-  /* Запуск */
-  openFromHash();
+  /* ---------- Запуск ---------- */
+  applySlideFilter();   /* сначала фильтруем */
+  openFromHash();        /* потом открываем нужный слайд */
 
-  /* ---------- тесты ---------- */
+  /* ============================================================
+     3) ТЕСТЫ
+     ============================================================ */
   document.querySelectorAll('.quiz-item').forEach(item => {
     const correct = item.dataset.correct === 'true';
     const feedback = item.querySelector('.quiz-feedback');
@@ -2036,7 +2072,9 @@
     });
   });
 
-  /* ---------- сортировка ---------- */
+  /* ============================================================
+     4) СОРТИРОВКА
+     ============================================================ */
   document.querySelectorAll('.sort-container').forEach(container => {
     const correctIndex = parseInt(container.dataset.correct, 10);
     const cards = container.querySelectorAll('.sort-card');
