@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Благоприятствующие элементарные события. Вероятности событий</title>
+
+<script>
+  MathJax = {
+    tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+    svg: { fontCache: 'global' }
+  };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+<style>
+  :root{
+    --main:#27ae60;
+    --dark:#1e8449;
+    --light:#e8f6ed;
+    --border:#a9dfc0;
+    --bg:#f4fbf6;
+    --green:#27ae60;
+    --red:#e74c3c;
+
+    --plate-green-bg:#e6f4d7;
+    --plate-green-br:#7ac143;
+    --plate-mint-bg:#d9f2e6;
+    --plate-mint-br:#27ae60;
+    --plate-teal-bg:#d4f0ee;
+    --plate-teal-br:#16a085;
+    --plate-lime-bg:#eef7d4;
+    --plate-lime-br:#9acd32;
+    --plate-orange-bg:#fde9d3;
+    --plate-orange-br:#e67e22;
+    --plate-blue-bg:#dff0fb;
+    --plate-blue-br:#3498db;
+
+    --hint-bg:#fef9e0;
+    --hint-bar:#f1c40f;
+
+    --text-scale: 1.05;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    font-family:"Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size:calc(20px * var(--text-scale));
+    background:var(--bg);
+    color:#1c3d2a;
+    line-height:1.55;
+  }
+
+  .progress{
+    position:fixed; top:0; left:0; height:6px;
+    background:var(--main); width:0%; z-index:100;
+    transition:width .3s ease;
+  }
+  .counter{
+    position:fixed; top:14px; right:20px; z-index:100;
+    background:#fff; color:var(--dark);
+    border:2px solid var(--border); border-radius:24px;
+    padding:6px 20px;
+    font-size:17px; font-weight:800;
+    box-shadow:0 4px 14px rgba(39,174,96,.2);
+  }
+
+  .slide{
+    display:none;
+    max-width:1100px;
+    margin:70px auto 130px;
+    background:#fff;
+    border-radius:20px;
+    box-shadow:0 18px 46px rgba(39,174,96,.15);
+    padding:42px 52px 52px;
+    position:relative;
+    animation:fade .35s ease;
+  }
+  .slide.active{display:block;}
+  @keyframes fade{
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:none;}
+  }
+
+  .slide-num{
+    position:absolute; top:18px; left:26px;
+    font-size:15px; color:var(--border); font-weight:800;
+  }
+
+  h1{
+    font-size:calc(2.3rem * var(--text-scale));
+    color:var(--dark);
+    text-align:center;
+    margin:0 0 12px;
+    font-weight:900;
+  }
+  .subtitle{
+    text-align:center;
+    color:var(--main);
+    font-size:calc(1.15rem * var(--text-scale));
+    margin-bottom:32px;
+    font-weight:700;
+  }
+
+  h2{
+    font-size:calc(1.8rem * var(--text-scale));
+    color:#fff;
+    margin:0 0 24px;
+    padding:12px 24px;
+    background:var(--main);
+    border-radius:14px;
+    font-weight:900;
+    box-shadow:0 8px 20px rgba(39,174,96,.3);
+    display:inline-block;
+  }
+
+  h3{
+    color:var(--dark);
+    font-size:calc(1.25rem * var(--text-scale));
+    margin:0 0 12px;
+    font-weight:800;
+  }
+  p{margin:12px 0; font-size:calc(19px * var(--text-scale));}
+  ul,ol{margin:12px 0 12px 26px; padding:0;}
+  li{margin:8px 0; font-size:calc(19px * var(--text-scale)); font-weight:500;}
+
+  .formula{
+    font-size:calc(1.45rem * var(--text-scale));
+    text-align:center;
+    margin:18px 0;
+    color:var(--dark);
+    font-weight:800;
+  }
+
+  .plate{
+    border-radius:18px;
+    padding:22px 28px;
+    margin:20px 0;
+    border:2px solid;
+  }
+  .plate-title{
+    display:inline-block;
+    font-size:calc(1.3rem * var(--text-scale));
+    font-weight:900;
+    padding:8px 22px;
+    border-radius:12px;
+    margin-bottom:14px;
+    color:#fff;
+  }
+  .plate-green{background:var(--plate-green-bg); border-color:var(--plate-green-br);}
+  .plate-green .plate-title{background:var(--plate-green-br);}
+  .plate-mint{background:var(--plate-mint-bg); border-color:var(--plate-mint-br);}
+  .plate-mint .plate-title{background:var(--plate-mint-br);}
+  .plate-teal{background:var(--plate-teal-bg); border-color:var(--plate-teal-br);}
+  .plate-teal .plate-title{background:var(--plate-teal-br);}
+  .plate-lime{background:var(--plate-lime-bg); border-color:var(--plate-lime-br);}
+  .plate-lime .plate-title{background:var(--plate-lime-br);}
+  .plate-orange{background:var(--plate-orange-bg); border-color:var(--plate-orange-br);}
+  .plate-orange .plate-title{background:var(--plate-orange-br);}
+  .plate-blue{background:var(--plate-blue-bg); border-color:var(--plate-blue-br);}
+  .plate-blue .plate-title{background:var(--plate-blue-br);}
+
+  .grid{display:grid; gap:20px;}
+  .grid-2{grid-template-columns:1fr 1fr;}
+  .grid-3{grid-template-columns:repeat(3,1fr);}
+
+  .hint{
+    background:var(--hint-bg);
+    border-left:8px solid var(--hint-bar);
+    border-radius:10px;
+    padding:16px 22px;
+    margin:18px 0;
+    font-size:calc(18px * var(--text-scale));
+    font-weight:600;
+  }
+  .hint b{color:#b45309;}
+
+  .figure{
+    display:flex; justify-content:center; align-items:center;
+    margin:14px 0;
+  }
+  svg{max-width:100%; height:auto;}
+  .svg-label{font-size:16px; fill:#1c3d2a; font-weight:700;}
+  .svg-label-green{font-size:16px; fill:#1e8449; font-weight:800;}
+
+  .task-box{
+    background:var(--light);
+    border:2px solid var(--border);
+    border-radius:18px;
+    padding:22px 28px;
+    margin:20px 0;
+  }
+  .task-head{display:flex; align-items:center; gap:14px; margin-bottom:12px;}
+  .task-num{
+    flex:0 0 auto;
+    width:38px; height:38px; border-radius:50%;
+    background:var(--main);
+    box-shadow:0 6px 14px rgba(39,174,96,.35);
+  }
+  .task-title{font-weight:800; color:var(--dark); font-size:calc(1.1rem * var(--text-scale));}
+
+  details{
+    margin-top:14px;
+    background:#fff;
+    border:2px solid var(--border);
+    border-radius:12px;
+    padding:10px 20px;
+  }
+  summary{
+    cursor:pointer;
+    font-weight:800;
+    color:var(--dark);
+    outline:none;
+    font-size:calc(16px * var(--text-scale));
+  }
+  details[open] summary{margin-bottom:10px;}
+  details p{font-size:calc(16px * var(--text-scale));}
+  .answer{color:var(--green); font-weight:800;}
+
+  .quiz-item{
+    background:#fff;
+    border:2px solid var(--border);
+    border-radius:14px;
+    padding:14px 20px;
+    margin:10px 0;
+    display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  }
+  .quiz-item .q-text{
+    flex:1; min-width:220px;
+    font-weight:700;
+    font-size:calc(17px * var(--text-scale));
+  }
+  .quiz-btns{display:flex; gap:10px; flex-wrap:wrap;}
+  .quiz-btn{
+    border:2px solid var(--main);
+    background:#fff; color:var(--main);
+    border-radius:12px;
+    padding:8px 20px;
+    font-size:calc(16px * var(--text-scale));
+    font-weight:800;
+    cursor:pointer;
+    transition:all .2s;
+  }
+  .quiz-btn:hover{background:var(--light);}
+  .quiz-btn.correct{background:var(--green); border-color:var(--green); color:#fff;}
+  .quiz-btn.wrong{background:var(--red); border-color:var(--red); color:#fff;}
+  .quiz-feedback{
+    flex-basis:100%;
+    font-size:calc(16px * var(--text-scale));
+    font-weight:800;
+  }
+  .quiz-feedback.ok{color:var(--green);}
+  .quiz-feedback.no{color:var(--red);}
+
+  .sort-container{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));
+    gap:12px;
+    margin:16px 0;
+  }
+  .sort-card{
+    background:#fff;
+    border:3px solid var(--border);
+    border-radius:14px;
+    padding:14px 12px;
+    text-align:center;
+    cursor:pointer;
+    font-weight:800;
+    font-size:calc(1.15rem * var(--text-scale));
+    color:var(--dark);
+    transition:all .2s;
+    user-select:none;
+  }
+  .sort-card:hover{
+    border-color:var(--main);
+    transform:translateY(-3px);
+    box-shadow:0 8px 20px rgba(39,174,96,.2);
+  }
+  .sort-card.correct{
+    background:var(--green);
+    color:#fff;
+    border-color:#1e8449;
+  }
+  .sort-card.wrong{
+    background:var(--red);
+    color:#fff;
+    border-color:#c0392b;
+    animation:shake .4s;
+  }
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    25%{transform:translateX(-6px);}
+    75%{transform:translateX(6px);}
+  }
+
+  .question-slide{text-align:center;}
+  .question-slide .big-q{
+    font-size:calc(1.9rem * var(--text-scale));
+    color:var(--dark);
+    font-weight:900;
+    margin:36px 0;
+    line-height:1.4;
+  }
+  .question-slide .big-q em{color:var(--main); font-style:normal;}
+  .think{
+    display:inline-block;
+    background:var(--hint-bg);
+    border:3px dashed var(--hint-bar);
+    border-radius:20px;
+    padding:18px 36px;
+    font-size:calc(1.25rem * var(--text-scale));
+    font-weight:800;
+    color:#b45309;
+    margin:18px 0;
+  }
+
+  .big-formula{
+    background:var(--plate-lime-bg);
+    border:3px solid var(--plate-lime-br);
+    border-radius:18px;
+    padding:24px 28px;
+    text-align:center;
+    margin:22px 0;
+  }
+  .big-formula .f-line{
+    font-size:calc(2rem * var(--text-scale));
+    color:var(--dark);
+    font-weight:900;
+    margin:8px 0;
+  }
+
+  .dice-row{
+    display:flex; gap:12px;
+    justify-content:center; flex-wrap:wrap;
+    margin:16px 0;
+  }
+  .dice-face{
+    width:72px; height:72px;
+    background:#fff;
+    border:3px solid var(--main);
+    border-radius:14px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:30px; font-weight:900;
+    color:var(--dark);
+    box-shadow:0 6px 14px rgba(39,174,96,.2);
+  }
+  .dice-face.fav{
+    background:var(--green); color:#fff; border-color:#1e8449;
+  }
+  .coin-row{
+    display:flex; gap:20px;
+    justify-content:center;
+    margin:16px 0;
+  }
+  .coin{
+    width:80px; height:80px;
+    border-radius:50%;
+    background:#fdf6d9;
+    border:4px solid #c9a227;
+    display:flex; align-items:center; justify-content:center;
+    font-size:32px; font-weight:900;
+    color:#8a6a0a;
+    box-shadow:0 6px 14px rgba(201,162,39,.3);
+  }
+
+  .outcomes{
+    display:flex; gap:12px;
+    justify-content:center; flex-wrap:wrap;
+    margin:16px 0;
+  }
+  .outcome{
+    background:#fff;
+    border:3px solid var(--main);
+    border-radius:14px;
+    padding:16px 22px;
+    font-size:calc(1.3rem * var(--text-scale));
+    font-weight:900;
+    color:var(--dark);
+    box-shadow:0 6px 14px rgba(39,174,96,.15);
+  }
+  .outcome.fav{
+    background:var(--green); color:#fff; border-color:#1e8449;
+  }
+  .outcome.neutral{
+    background:#eef0f2; color:#7a8794; border-color:#c3ccd4;
+  }
+
+  .chocolate{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:6px;
+    max-width:280px;
+    margin:16px auto;
+    background:#5a3a1a;
+    padding:6px;
+    border-radius:10px;
+  }
+  .chocolate .piece{
+    background:#8b5a2b;
+    height:60px;
+    border-radius:6px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:24px; font-weight:900; color:#fff;
+  }
+  .chocolate .piece.fav{background:#27ae60;}
+
+  .chain{
+    display:flex; flex-direction:column;
+    align-items:center; gap:6px;
+    margin:18px 0;
+  }
+  .chain .step{
+    background:var(--plate-mint-bg);
+    border:2px solid var(--plate-mint-br);
+    border-radius:14px;
+    padding:12px 28px;
+    font-size:calc(1.1rem * var(--text-scale));
+    font-weight:800;
+    color:var(--dark);
+    min-width:340px;
+    text-align:center;
+  }
+  .chain .arrow{
+    color:var(--main);
+    font-size:26px;
+    font-weight:900;
+  }
+
+  .solution-box{
+    margin-top:14px;
+    background:#fff;
+    border:2px solid var(--border);
+    border-radius:10px;
+    min-height:70px;
+    padding:14px 18px;
+  }
+
+  .frac-table{
+    width:100%; border-collapse:collapse;
+    font-size:calc(18px * var(--text-scale));
+  }
+  .frac-table th, .frac-table td{
+    border:2px solid var(--border);
+    padding:10px 12px;
+  }
+  .frac-table th{background:var(--light); text-align:left;}
+
+  .nav{
+    position:fixed; bottom:22px; left:50%; transform:translateX(-50%);
+    display:flex; gap:14px; z-index:100;
+  }
+  .nav button{
+    background:var(--main); color:#fff; border:none;
+    padding:12px 28px; border-radius:32px;
+    font-size:17px; font-weight:800; cursor:pointer;
+    box-shadow:0 8px 22px rgba(39,174,96,.4);
+    transition:background .2s, transform .1s;
+  }
+  .nav button:hover{background:var(--dark);}
+  .nav button:active{transform:scale(.97);}
+  .nav button:disabled{background:#c7e7d3; cursor:default; box-shadow:none;}
+
+  @media (max-width:760px){
+    .slide{margin:60px 12px 130px; padding:24px 18px 32px;}
+    .grid-2,.grid-3{grid-template-columns:1fr;}
+    h1{font-size:1.6rem;}
+    h2{font-size:1.35rem; padding:10px 18px;}
+    body{font-size:16px;}
+    .nav button{padding:10px 20px; font-size:14px;}
+    .counter{top:10px; right:10px; font-size:13px; padding:3px 12px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="counter" id="counter">1 / 30</div>
+
+<!-- ================= СЛАЙД 1. Титул ================= -->
+<section class="slide active" data-num="1">
+  <span class="slide-num">Слайд 1</span>
+  <h1>Благоприятствующие элементарные события. Вероятности событий</h1>
+  <p class="subtitle">Классическая формула вероятности · Вероятность составного события</p>
+
+  <div class="grid grid-3">
+    <div class="plate plate-mint">
+      <span class="plate-title">1</span>
+      <p>Вспомним: элементарные события и \(1/N\)</p>
+    </div>
+    <div class="plate plate-teal">
+      <span class="plate-title">2</span>
+      <p>Благоприятствующие исходы</p>
+    </div>
+    <div class="plate plate-lime">
+      <span class="plate-title">3</span>
+      <p>Формула \(P=\dfrac{m}{n}\) и её применение</p>
+    </div>
+  </div>
+
+  <div class="hint">
+    <b>Сегодня работаем в диалоге:</b> сначала я задаю вопрос — вы думаете,
+    потом проверяем ответ.
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 2. Актуализация: элементарные события ================= -->
+<section class="slide" data-num="2">
+  <span class="slide-num">Слайд 2</span>
+  <h2>Актуализация: что мы уже знаем</h2>
+
+  <p>Ответьте сами, прежде чем проверить:</p>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">1. Сколько элементарных событий при броске монеты?</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="true">2</button>
+      <button class="quiz-btn" data-ans="false">4</button>
+      <button class="quiz-btn" data-ans="false">6</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">2. Сколько элементарных событий при броске кубика?</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">2</button>
+      <button class="quiz-btn" data-ans="true">6</button>
+      <button class="quiz-btn" data-ans="false">12</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">3. При броске кубика вероятность каждого элементарного события равна…</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="true">\(\dfrac{1}{6}\)</button>
+      <button class="quiz-btn" data-ans="false">\(\dfrac{1}{2}\)</button>
+      <button class="quiz-btn" data-ans="false">\(\dfrac{1}{3}\)</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">4. Сумма вероятностей всех элементарных событий равна…</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">0</button>
+      <button class="quiz-btn" data-ans="true">1</button>
+      <button class="quiz-btn" data-ans="false">зависит от опыта</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 3. Вопрос-переход ================= -->
+<section class="slide question-slide" data-num="3">
+  <span class="slide-num">Слайд 3</span>
+  <h2>Проблема</h2>
+
+  <div class="big-q">
+    Мы умеем находить вероятность <em>одного элементарного события</em>.<br>
+    А как найти вероятность события «выпало чётное число»?
+  </div>
+
+  <div class="think">🤔 Ведь это событие состоит из нескольких элементарных!</div>
+
+  <p style="margin-top:28px;">
+    В прошлом уроке мы выяснили: «чётное число» — это <b>составное</b> событие.
+    Ему соответствуют исходы 2, 4, 6.
+  </p>
+</section>
+
+<!-- ================= СЛАЙД 4. Благоприятствующие исходы ================= -->
+<section class="slide" data-num="4">
+  <span class="slide-num">Слайд 4</span>
+  <h2>Благоприятствующие элементарные события</h2>
+
+  <div class="plate plate-mint">
+    <span class="plate-title">Определение</span>
+    <p><b>Благоприятствующими</b> для события \(A\) называют те элементарные события,
+       при которых событие \(A\) <b>наступает</b>.</p>
+  </div>
+
+  <div class="plate plate-teal">
+    <span class="plate-title">Пример: бросаем кубик</span>
+    <p>Событие \(A\) = «выпало чётное число».</p>
+    <div class="dice-row">
+      <div class="dice-face neutral" style="background:#eef0f2;color:#7a8794;border-color:#c3ccd4;">1</div>
+      <div class="dice-face fav">2</div>
+      <div class="dice-face neutral" style="background:#eef0f2;color:#7a8794;border-color:#c3ccd4;">3</div>
+      <div class="dice-face fav">4</div>
+      <div class="dice-face neutral" style="background:#eef0f2;color:#7a8794;border-color:#c3ccd4;">5</div>
+      <div class="dice-face fav">6</div>
+    </div>
+    <p>Зелёные грани — <b>благоприятствующие</b> события: 2, 4, 6.</p>
+    <p>Серые грани — <b>не благоприятствуют</b> событию \(A\): 1, 3, 5.</p>
+  </div>
+
+  <div class="hint">
+    <b>Запомни:</b> благоприятствующие исходы — это «те, которые нам подходят».
+    Именно они «работают» на наше событие.
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 5. Задание: выбери благоприятствующие ================= -->
+<section class="slide" data-num="5">
+  <span class="slide-num">Слайд 5</span>
+  <h2>Задание: какие исходы благоприятствуют?</h2>
+
+  <p>Бросаем кубик. Событие \(B\) = «выпало число больше 3».
+     Какие исходы благоприятствуют событию \(B\)?</p>
+
+  <div class="outcomes">
+    <div class="outcome">1</div>
+    <div class="outcome">2</div>
+    <div class="outcome">3</div>
+    <div class="outcome">4</div>
+    <div class="outcome">5</div>
+    <div class="outcome">6</div>
+  </div>
+
+  <details>
+    <summary>Показать ответ</summary>
+    <p class="answer">Благоприятствуют: 4, 5, 6 — всего 3 исхода.</p>
+    <p>А исходы 1, 2, 3 событию \(B\) не благоприятствуют.</p>
+  </details>
+
+  <div class="plate plate-lime">
+    <span class="plate-title">Вопрос</span>
+    <p>Событие \(C\) = «выпало нечётное число».
+       Какие исходы благоприятствуют \(C\)?</p>
+    <details>
+      <summary>Показать ответ</summary>
+      <p class="answer">1, 3, 5 — всего 3 исхода.</p>
+    </details>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 6. Формула классической вероятности ================= -->
+<section class="slide" data-num="6">
+  <span class="slide-num">Слайд 6</span>
+  <h2>Формула вероятности события</h2>
+
+  <div class="big-formula">
+    <div class="f-line">\(P(A) = \dfrac{m}{n}\)</div>
+    <p><b>\(n\)</b> — общее число равновозможных элементарных событий опыта;</p>
+    <p><b>\(m\)</b> — число благоприятствующих событию \(A\) исходов.</p>
+  </div>
+
+  <div class="hint">
+    <b>Смысл:</b> вероятность — это <b>доля</b> благоприятствующих исходов
+    среди всех возможных. Как если бы мы «вырезали» нужные кусочки из целого.
+  </div>
+
+  <div class="plate plate-teal">
+    <span class="plate-title">Сравнение с прошлым уроком</span>
+    <p>Если событие <b>элементарное</b>, то \(m = 1\), и формула даёт
+       \(P = \dfrac{1}{n}\) — то, что мы уже знаем.</p>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 7. Шоколадная аналогия ================= -->
+<section class="slide" data-num="7">
+  <span class="slide-num">Слайд 7</span>
+  <h2>Почему формула работает: шоколадка</h2>
+
+  <div class="plate plate-lime">
+    <span class="plate-title">Аналогия</span>
+    <p>Шоколадка из 6 равных кусочков 🍫. Нас интересуют 3 кусочка (например, «с орешком»).</p>
+    <div class="chocolate">
+      <div class="piece fav">1</div>
+      <div class="piece">2</div>
+      <div class="piece fav">3</div>
+      <div class="piece">4</div>
+      <div class="piece fav">5</div>
+      <div class="piece">6</div>
+    </div>
+    <p>Случайно берём один кусочек. Какова вероятность, что он «с орешком»?</p>
+    <p class="formula">\(P = \dfrac{3}{6} = \dfrac{1}{2}\)</p>
+  </div>
+
+  <div class="hint">
+    <b>То же с кубиком:</b> 6 равновозможных граней, 3 нам подходят →
+    \(P = \dfrac{3}{6} = \dfrac{1}{2}\).
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 8. Пример 1: чётное число ================= -->
+<section class="slide" data-num="8">
+  <span class="slide-num">Слайд 8</span>
+  <h2>Пример 1: «выпало чётное число»</h2>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">Задача</div>
+    </div>
+    <p>Бросают правильный кубик. Найдите вероятность события
+       \(A\) = «выпало чётное число».</p>
+
+    <ol>
+      <li>Всего исходов: \(n = 6\).</li>
+      <li>Благоприятствующие: 2, 4, 6 → \(m = 3\).</li>
+      <li>По формуле: \(P(A) = \dfrac{m}{n} = \dfrac{3}{6} = \dfrac{1}{2}\).</li>
+    </ol>
+
+    <details>
+      <summary>Показать ответ</summary>
+      <p class="answer">\(P = \dfrac{1}{2} = 0{,}5\).</p>
+    </details>
+  </div>
+
+  <div class="hint">
+    <b>Проверка здравым смыслом:</b> половина граней чётные, половина — нет.
+    Значит, шанс \(\dfrac{1}{2}\). Всё сходится!
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 9. Пример 2: больше 4 ================= -->
+<section class="slide" data-num="9">
+  <span class="slide-num">Слайд 9</span>
+  <h2>Пример 2: «выпало больше 4»</h2>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">Задача</div>
+    </div>
+    <p>Бросают кубик. Найдите вероятность события
+       \(B\) = «выпало больше 4».</p>
+
+    <ol>
+      <li>\(n = 6\).</li>
+      <li>Благоприятствующие: 5, 6 → \(m = 2\).</li>
+      <li>\(P(B) = \dfrac{2}{6} = \dfrac{1}{3}\).</li>
+    </ol>
+
+    <details>
+      <summary>Показать ответ</summary>
+      <p class="answer">\(P = \dfrac{1}{3}\).</p>
+    </details>
+  </div>
+
+  <div class="hint">
+    <b>Обрати внимание:</b> дробь \(\dfrac{2}{6}\) мы <b>сократили</b> до \(\dfrac{1}{3}\).
+    Это одно и то же число, но записывать ответ лучше в несократимом виде.
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 10. Пример 3: монета дважды ================= -->
+<section class="slide" data-num="10">
+  <span class="slide-num">Слайд 10</span>
+  <h2>Пример 3: монета дважды</h2>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">Задача</div>
+    </div>
+    <p>Монету бросают два раза. Найдите вероятность события
+       \(C\) = «выпал ровно один орёл».</p>
+
+    <div class="outcomes">
+      <div class="outcome neutral">ОО</div>
+      <div class="outcome fav">ОР</div>
+      <div class="outcome fav">РО</div>
+      <div class="outcome neutral">РР</div>
+    </div>
+
+    <ol>
+      <li>Всего исходов: \(n = 4\).</li>
+      <li>Ровно один орёл: ОР и РО → \(m = 2\).</li>
+      <li>\(P(C) = \dfrac{2}{4} = \dfrac{1}{2}\).</li>
+    </ol>
+
+    <details>
+      <summary>Показать ответ</summary>
+      <p class="answer">\(P = \dfrac{1}{2}\).</p>
+    </details>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 11. Мини-практика: выбери m и n ================= -->
+<section class="slide" data-num="11">
+  <span class="slide-num">Слайд 11</span>
+  <h2>Мини-практика: найди \(m\) и \(n\)</h2>
+
+  <p>Бросаем кубик. Для каждого события укажите \(n\), \(m\) и вероятность.</p>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">1. \(A\) = «выпало 5». Чему равно \(m\)?</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="true">\(m = 1\)</button>
+      <button class="quiz-btn" data-ans="false">\(m = 5\)</button>
+      <button class="quiz-btn" data-ans="false">\(m = 6\)</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">2. \(B\) = «выпало больше 3». Чему равно \(m\)?</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">\(m = 2\)</button>
+      <button class="quiz-btn" data-ans="true">\(m = 3\)</button>
+      <button class="quiz-btn" data-ans="false">\(m = 4\)</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">3. \(C\) = «выпало число, кратное 3». Чему равно \(m\)?</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">\(m = 1\)</button>
+      <button class="quiz-btn" data-ans="true">\(m = 2\)</button>
+      <button class="quiz-btn" data-ans="false">\(m = 3\)</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">4. Чему равно \(n\) во всех этих задачах?</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">\(n = 3\)</button>
+      <button class="quiz-btn" data-ans="true">\(n = 6\)</button>
+      <button class="quiz-btn" data-ans="false">\(n = 12\)</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="hint">
+    <b>Помни:</b> \(n\) — это <i>всегда</i> общее число равновозможных исходов опыта.
+    Для одного броска кубика \(n = 6\) в любой задаче.
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 12. Свойства вероятности ================= -->
+<section class="slide" data-num="12">
+  <span class="slide-num">Слайд 12</span>
+  <h2>Свойства вероятности</h2>
+
+  <p>Из формулы \(P(A) = \dfrac{m}{n}\) следуют важные свойства.</p>
+
+  <div class="plate plate-green">
+    <span class="plate-title">Главное свойство</span>
+    <p>Вероятность любого события заключена между \(0\) и \(1\):</p>
+    <p class="formula">\(0 \leq P(A) \leq 1\)</p>
+  </div>
+
+  <div class="grid grid-3">
+    <div class="plate plate-orange">
+      <span class="plate-title">\(P = 0\)</span>
+      <p>Невозможное событие.</p>
+      <p>Благоприятствующих исходов нет: \(m = 0\).</p>
+    </div>
+    <div class="plate plate-blue">
+      <span class="plate-title">\(0 < P < 1\)</span>
+      <p>Случайное событие.</p>
+      <p>Часть исходов благоприятствует, часть — нет.</p>
+    </div>
+    <div class="plate plate-green">
+      <span class="plate-title">\(P = 1\)</span>
+      <p>Достоверное событие.</p>
+      <p>Благоприятствуют <b>все</b> исходы: \(m = n\).</p>
+    </div>
+  </div>
+
+  <div class="hint">
+    <b>Связь с прошлым уроком:</b> достоверное → \(1\), невозможное → \(0\),
+    случайное → между \(0\) и \(1\). Формула \(P = \dfrac{m}{n}\) это подтверждает.
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 13. Пример: простое число ================= -->
+<section class="slide" data-num="13">
+  <span class="slide-num">Слайд 13</span>
+  <h2>Пример: «выпало простое число»</h2>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">Задача</div>
+    </div>
+    <p>Бросают кубик. Найдите вероятность события
+       \(D\) = «выпало простое число».</p>
+
+    <div class="dice-row">
+      <div class="dice-face neutral" style="background:#eef0f2;color:#7a8794;border-color:#c3ccd4;">1</div>
+      <div class="dice-face fav">2</div>
+      <div class="dice-face fav">3</div>
+      <div class="dice-face neutral" style="background:#eef0f2;color:#7a8794;border-color:#c3ccd4;">4</div>
+      <div class="dice-face fav">5</div>
+      <div class="dice-face neutral" style="background:#eef0f2;color:#7a8794;border-color:#c3ccd4;">6</div>
+    </div>
+
+    <ol>
+      <li>\(n = 6\).</li>
+      <li>Простые числа на кубике: 2, 3, 5 → \(m = 3\).</li>
+      <li>\(P(D) = \dfrac{3}{6} = \dfrac{1}{2}\).</li>
+    </ol>
+
+    <details>
+      <summary>Показать ответ</summary>
+      <p class="answer">\(P = \dfrac{1}{2}\).</p>
+      <p><b>Напоминание:</b> 1 — не простое число, поэтому в \(m\) не входит.</p>
+    </details>
+  </div>
+
+  <div class="hint">
+    <b>Ловушка:</b> ученики часто включают 1 в простые числа. Это ошибка!
+    Простое число имеет ровно два делителя: 1 и само себя.
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 14. Сортировка: событие → вероятность ================= -->
+<section class="slide" data-num="14">
+  <span class="slide-num">Слайд 14</span>
+  <h2>Задание: найди вероятность</h2>
+
+  <p>Бросаем кубик. Событие — «выпало число, меньшее 3».
+     Какая вероятность у этого события?</p>
+
+  <div class="sort-container" data-correct="0">
+    <div class="sort-card">\(\dfrac{1}{3}\)</div>
+    <div class="sort-card">\(\dfrac{1}{2}\)</div>
+    <div class="sort-card">\(\dfrac{1}{6}\)</div>
+    <div class="sort-card">\(\dfrac{2}{3}\)</div>
+  </div>
+
+  <p style="text-align:center; margin-top:-6px;">
+    Благоприятствующие исходы: 1 и 2.
+  </p>
+
+  <div class="hint" id="fb-sort14" style="display:none;"></div>
+
+  <div class="plate plate-teal" style="margin-top:24px;">
+    <span class="plate-title">Разбор</span>
+    <p>\(n = 6\), \(m = 2\) (исходы 1 и 2).</p>
+    <p>\(P = \dfrac{2}{6} = \dfrac{1}{3}\).</p>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 15. Противоположное событие ================= -->
+<section class="slide" data-num="15">
+  <span class="slide-num">Слайд 15</span>
+  <h2>Противоположное событие</h2>
+
+  <div class="plate plate-mint">
+    <span class="plate-title">Определение</span>
+    <p>Событие \(\overline{A}\) (читается «не \(A\)») называют <b>противоположным</b>
+       событию \(A\). Оно наступает тогда и только тогда, когда <b>не наступает</b> \(A\).</p>
+  </div>
+
+  <div class="plate plate-teal">
+    <span class="plate-title">Пример: кубик</span>
+    <p>\(A\) = «выпало чётное число» → \(A\): 2, 4, 6.</p>
+    <p>\(\overline{A}\) = «выпало нечётное число» → \(\overline{A}\): 1, 3, 5.</p>
+    <div class="dice-row">
+      <div class="dice-face fav">1</div>
+      <div class="dice-face neutral" style="background:#eef0f2;color:#7a8794;border-color:#c3ccd4;">2</div>
+      <div class="dice-face fav">3</div>
+      <div class="dice-face neutral" style="background:#eef0f2;color:#7a8794;border-color:#c3ccd4;">4</div>
+      <div class="dice-face fav">5</div>
+      <div class="dice-face neutral" style="background:#eef0f2;color:#7a8794;border-color:#c3ccd4;">6</div>
+    </div>
+    <p>Зелёные — благоприятствуют \(\overline{A}\).</p>
+  </div>
+
+  <div class="hint">
+    <b>Важно:</b> события \(A\) и \(\overline{A}\) вместе покрывают <b>все</b> исходы опыта,
+    и при этом не пересекаются.
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 16. Формула дополнения ================= -->
+<section class="slide" data-num="16">
+  <span class="slide-num">Слайд 16</span>
+  <h2>Вероятность противоположного события</h2>
+
+  <div class="big-formula">
+    <div class="f-line">\(P(\overline{A}) = 1 - P(A)\)</div>
+    <p>Сумма вероятностей противоположных событий равна \(1\):</p>
+    <p>\(P(A) + P(\overline{A}) = 1\)</p>
+  </div>
+
+  <div class="hint">
+    <b>Почему?</b> Благоприятствующие исходы \(A\) и \(\overline{A}\) вместе составляют
+    <i>все</i> \(n\) исходов. Значит, \(m + m' = n\), откуда \(\dfrac{m}{n} + \dfrac{m'}{n} = 1\).
+  </div>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">Пример</div>
+    </div>
+    <p>Вероятность попасть в цель \(P(A) = 0{,}7\).
+       Какова вероятность промахнуться?</p>
+    <details>
+      <summary>Показать ответ</summary>
+      <p class="answer">\(P(\overline{A}) = 1 - 0{,}7 = 0{,}3\).</p>
+    </details>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 17. Задача из учебника: кубик ================= -->
+<section class="slide" data-num="17">
+  <span class="slide-num">Слайд 17</span>
+  <h2>Задача из учебника: кубик</h2>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">Задача</div>
+    </div>
+    <p>Бросают правильный игральный кубик. Найдите вероятности событий:</p>
+    <ul>
+      <li>\(A\) — выпало 3 очка;</li>
+      <li>\(B\) — выпало не менее 4 очков;</li>
+      <li>\(C\) — выпало число, кратное 2;</li>
+      <li>\(D\) — выпало число, большее 7.</li>
+    </ul>
+    <details>
+      <summary>Показать ответы</summary>
+      <p>\(n = 6\) во всех случаях.</p>
+      <p><b>\(A\):</b> \(m = 1\) → \(P = \dfrac{1}{6}\).</p>
+      <p><b>\(B\):</b> исходы 4, 5, 6 → \(m = 3\) → \(P = \dfrac{3}{6} = \dfrac{1}{2}\).</p>
+      <p><b>\(C\):</b> исходы 2, 4, 6 → \(m = 3\) → \(P = \dfrac{3}{6} = \dfrac{1}{2}\).</p>
+      <p><b>\(D\):</b> таких исходов нет → \(m = 0\) → \(P = 0\) (невозможное событие).</p>
+    </details>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 18. Задача из учебника: монета ================= -->
+<section class="slide" data-num="18">
+  <span class="slide-num">Слайд 18</span>
+  <h2>Задача из учебника: монета</h2>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">Задача</div>
+    </div>
+    <p>Монету бросают два раза. Найдите вероятности событий:</p>
+    <ul>
+      <li>\(A\) — выпало два орла;</li>
+      <li>\(B\) — выпал хотя бы один орёл;</li>
+      <li>\(C\) — орлов не выпало.</li>
+    </ul>
+
+    <div class="outcomes">
+      <div class="outcome fav">ОО</div>
+      <div class="outcome fav">ОР</div>
+      <div class="outcome fav">РО</div>
+      <div class="outcome neutral">РР</div>
+    </div>
+
+    <details>
+      <summary>Показать ответы</summary>
+      <p>\(n = 4\).</p>
+      <p><b>\(A\):</b> только ОО → \(m = 1\) → \(P = \dfrac{1}{4}\).</p>
+      <p><b>\(B\):</b> ОО, ОР, РО → \(m = 3\) → \(P = \dfrac{3}{4}\).</p>
+      <p><b>\(C\):</b> только РР → \(m = 1\) → \(P = \dfrac{1}{4}\).</p>
+      <p>Заметим: \(B\) и \(C\) — противоположные, \(\dfrac{3}{4} + \dfrac{1}{4} = 1\). ✅</p>
+    </details>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 19. Верно/неверно ================= -->
+<section class="slide" data-num="19">
+  <span class="slide-num">Слайд 19</span>
+  <h2>Верно или неверно?</h2>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">1. Вероятность может быть больше 1.</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">Верно</button>
+      <button class="quiz-btn" data-ans="true">Неверно</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">2. Если \(m = n\), то событие достоверное.</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="true">Верно</button>
+      <button class="quiz-btn" data-ans="false">Неверно</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">3. \(P(\overline{A}) = 1 + P(A)\).</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">Верно</button>
+      <button class="quiz-btn" data-ans="true">Неверно</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">4. Вероятность невозможного события равна 0.</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="true">Верно</button>
+      <button class="quiz-btn" data-ans="false">Неверно</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 20. Типичные ошибки ================= -->
+<section class="slide" data-num="20">
+  <span class="slide-num">Слайд 20</span>
+  <h2>Типичные ошибки</h2>
+
+  <div class="plate plate-orange">
+    <span class="plate-title">Ошибка 1</span>
+    <p>Считать \(n\) «по событию», а не по опыту.</p>
+    <p><b>Неверно:</b> для события «выпало чётное» брать \(n = 3\).</p>
+    <p><b>Верно:</b> \(n = 6\) — это <i>все</i> исходы опыта, а \(m = 3\).</p>
+  </div>
+
+  <div class="plate plate-orange">
+    <span class="plate-title">Ошибка 2</span>
+    <p>Забывать сокращать дробь или путать \(m\) и \(n\).</p>
+    <p><b>Неверно:</b> \(P = \dfrac{6}{3}\).</p>
+    <p><b>Верно:</b> \(P = \dfrac{m}{n}\), и ответ лучше давать несократимой дробью.</p>
+  </div>
+
+  <div class="plate plate-orange">
+    <span class="plate-title">Ошибка 3</span>
+    <p>Применять формулу \(\dfrac{m}{n}\), когда исходы <b>не равновозможны</b>.</p>
+    <p>Например, для утяжелённого кубика или мешка с разным числом шаров
+       эта формула <b>не работает</b>.</p>
+  </div>
+
+  <div class="hint">
+    <b>Проверка:</b> перед применением формулы убедитесь, что все элементарные
+    события <b>равновозможны</b>.
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 21. Карточки 1–10 ================= -->
+<section class="slide" data-num="21">
+  <span class="slide-num">Слайд 21</span>
+  <h2>Задача: карточки 1–10</h2>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">Задача</div>
+    </div>
+    <p>В коробке карточки с числами от 1 до 10. Наугад вытягивают одну карточку.
+       Найдите вероятности событий:</p>
+    <ul>
+      <li>\(A\) — вытянули число 7;</li>
+      <li>\(B\) — вытянули чётное число;</li>
+      <li>\(C\) — вытянули число, кратное 5;</li>
+      <li>\(D\) — вытянули число, большее 10.</li>
+    </ul>
+    <details>
+      <summary>Показать ответы</summary>
+      <p>\(n = 10\).</p>
+      <p><b>\(A\):</b> \(m = 1\) → \(P = \dfrac{1}{10}\).</p>
+      <p><b>\(B\):</b> 2, 4, 6, 8, 10 → \(m = 5\) → \(P = \dfrac{5}{10} = \dfrac{1}{2}\).</p>
+      <p><b>\(C\):</b> 5, 10 → \(m = 2\) → \(P = \dfrac{2}{10} = \dfrac{1}{5}\).</p>
+      <p><b>\(D\):</b> \(m = 0\) → \(P = 0\) (невозможное событие).</p>
+    </details>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 22. Шары в мешке ================= -->
+<section class="slide" data-num="22">
+  <span class="slide-num">Слайд 22</span>
+  <h2>Задача: шары в мешке</h2>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">Задача</div>
+    </div>
+    <p>В мешке 5 красных, 3 синих и 2 зелёных шара. Все шары одинаковы на ощупь.
+       Наугад вытягивают один шар.</p>
+    <ol>
+      <li>Сколько всего элементарных исходов?</li>
+      <li>Найдите вероятность вытянуть красный шар.</li>
+      <li>Найдите вероятность вытянуть не синий шар.</li>
+    </ol>
+
+    <details>
+      <summary>Показать ответы</summary>
+      <p>1. \(n = 5 + 3 + 2 = 10\).</p>
+      <p>2. Красных 5 → \(P = \dfrac{5}{10} = \dfrac{1}{2}\).</p>
+      <p>3. Не синих \(10 - 3 = 7\) → \(P = \dfrac{7}{10}\).</p>
+      <p>Или через противоположное: \(P(\text{синий}) = \dfrac{3}{10}\),
+         значит \(P(\text{не синий}) = 1 - \dfrac{3}{10} = \dfrac{7}{10}\). ✅</p>
+    </details>
+  </div>
+
+  <div class="hint">
+    <b>Обрати внимание:</b> здесь исходы равновозможны только потому, что шары
+    <i>одинаковы на ощупь</i>. Если бы шары отличались по размеру — формула не подошла бы.
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 23. Тест: m, n, P ================= -->
+<section class="slide" data-num="23">
+  <span class="slide-num">Слайд 23</span>
+  <h2>Тест: \(m\), \(n\) и \(P\)</h2>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">1. В опыте 12 равновозможных исходов. Событию \(A\) благоприятствуют 4.
+       Чему равна \(P(A)\)?</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">\(\dfrac{1}{4}\)</button>
+      <button class="quiz-btn" data-ans="true">\(\dfrac{1}{3}\)</button>
+      <button class="quiz-btn" data-ans="false">\(\dfrac{1}{12}\)</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">2. \(P(A) = \dfrac{2}{5}\). Сколько благоприятствующих исходов,
+       если всего исходов 20?</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">2</button>
+      <button class="quiz-btn" data-ans="true">8</button>
+      <button class="quiz-btn" data-ans="false">5</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">3. \(P(\overline{A}) = 0{,}2\). Чему равна \(P(A)\)?</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="true">\(0{,}8\)</button>
+      <button class="quiz-btn" data-ans="false">\(0{,}2\)</button>
+      <button class="quiz-btn" data-ans="false">\(1{,}2\)</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 24. Схема решения ================= -->
+<section class="slide" data-num="24">
+  <span class="slide-num">Слайд 24</span>
+  <h2>Схема решения задачи на вероятность</h2>
+
+  <div class="chain">
+    <div class="step">1. Понять, что такое элементарное событие опыта</div>
+    <div class="arrow">↓</div>
+    <div class="step">2. Посчитать \(n\) — число всех равновозможных исходов</div>
+    <div class="arrow">↓</div>
+    <div class="step">3. Перечислить благоприятствующие исходы, найти \(m\)</div>
+    <div class="arrow">↓</div>
+    <div class="step">4. Применить формулу \(P = \dfrac{m}{n}\)</div>
+    <div class="arrow">↓</div>
+    <div class="step">5. Сократить дробь и проверить \(0 \le P \le 1\)</div>
+  </div>
+
+  <div class="hint">
+    <b>Совет:</b> если задача про «хотя бы один» — часто проще найти вероятность
+    противоположного события и вычесть из \(1\).
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 25. Задача: карты ================= -->
+<section class="slide" data-num="25">
+  <span class="slide-num">Слайд 25</span>
+  <h2>Задача: игральные карты</h2>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">Задача</div>
+    </div>
+    <p>Из колоды в 36 карт наугад вытягивают одну карту.
+       Найдите вероятности событий:</p>
+    <ul>
+      <li>\(A\) — вытянули туза;</li>
+      <li>\(B\) — вытянули карту пиковой масти;</li>
+      <li>\(C\) — вытянули красную карту;</li>
+      <li>\(D\) — вытянули не туза.</li>
+    </ul>
+    <details>
+      <summary>Показать ответы</summary>
+      <p>\(n = 36\).</p>
+      <p><b>\(A\):</b> тузов 4 → \(P = \dfrac{4}{36} = \dfrac{1}{9}\).</p>
+      <p><b>\(B\):</b> пик 9 → \(P = \dfrac{9}{36} = \dfrac{1}{4}\).</p>
+      <p><b>\(C\):</b> красных (черви + бубны) 18 → \(P = \dfrac{18}{36} = \dfrac{1}{2}\).</p>
+      <p><b>\(D\):</b> \(P(\text{туз}) = \dfrac{1}{9}\), значит
+         \(P(\text{не туз}) = 1 - \dfrac{1}{9} = \dfrac{8}{9}\).</p>
+    </details>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 26. Задача: лотерея ================= -->
+<section class="slide" data-num="26">
+  <span class="slide-num">Слайд 26</span>
+  <h2>Задача: лотерея</h2>
+
+  <div class="task-box">
+    <div class="task-head">
+      <div class="task-num"></div>
+      <div class="task-title">Задача</div>
+    </div>
+    <p>В лотерее 100 билетов, из них 8 выигрышных.
+       Куплен один билет. Найдите вероятности событий:</p>
+    <ul>
+      <li>\(A\) — билет выигрышный;</li>
+      <li>\(B\) — билет без выигрыша.</li>
+    </ul>
+    <details>
+      <summary>Показать ответы</summary>
+      <p><b>\(A\):</b> \(P = \dfrac{8}{100} = 0{,}08\).</p>
+      <p><b>\(B\):</b> \(P = 1 - 0{,}08 = 0{,}92\) (или \(\dfrac{92}{100}\)).</p>
+    </details>
+  </div>
+
+  <div class="hint">
+    <b>Формат ответа:</b> вероятность можно записывать и обыкновенной дробью,
+    и десятичной. Главное — корректно сократить/округлить.
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 27. Сортировка: собери формулу ================= -->
+<section class="slide" data-num="27">
+  <span class="slide-num">Слайд 27</span>
+  <h2>Задание: выбери верную формулу</h2>
+
+  <p>Как найти вероятность события \(A\), если все исходы равновозможны?</p>
+
+  <div class="sort-container" data-correct="1">
+    <div class="sort-card">\(P(A) = \dfrac{n}{m}\)</div>
+    <div class="sort-card">\(P(A) = \dfrac{m}{n}\)</div>
+    <div class="sort-card">\(P(A) = m \cdot n\)</div>
+    <div class="sort-card">\(P(A) = m - n\)</div>
+  </div>
+
+  <div class="hint" id="fb-sort27" style="display:none;"></div>
+
+  <div class="plate plate-teal" style="margin-top:24px;">
+    <span class="plate-title">Проверка</span>
+    <p>\(m\) — благоприятствующие, \(n\) — все исходы. Благоприятствующих не может быть
+       больше, чем всех, поэтому \(m \le n\) и \(P \le 1\).</p>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 28. Итоговая таблица ================= -->
+<section class="slide" data-num="28">
+  <span class="slide-num">Слайд 28</span>
+  <h2>Итоговая таблица</h2>
+
+  <div class="plate plate-green">
+    <table class="frac-table">
+      <tr>
+        <th>Понятие</th>
+        <th>Обозначение / формула</th>
+      </tr>
+      <tr>
+        <td>Все равновозможные исходы</td>
+        <td>\(n\)</td>
+      </tr>
+      <tr>
+        <td>Благоприятствующие исходы</td>
+        <td>\(m\)</td>
+      </tr>
+      <tr>
+        <td>Вероятность события \(A\)</td>
+        <td>\(P(A) = \dfrac{m}{n}\)</td>
+      </tr>
+      <tr>
+        <td>Границы вероятности</td>
+        <td>\(0 \le P(A) \le 1\)</td>
+      </tr>
+      <tr>
+        <td>Противоположное событие</td>
+        <td>\(P(\overline{A}) = 1 - P(A)\)</td>
+      </tr>
+      <tr>
+        <td>Сумма вероятностей всех исходов</td>
+        <td>\(1\)</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="hint">
+    <b>Главное:</b> формула \(P = \dfrac{m}{n}\) работает <b>только</b> когда все
+    элементарные события <b>равновозможны</b>.
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 29. Финальная проверка ================= -->
+<section class="slide" data-num="29">
+  <span class="slide-num">Слайд 29</span>
+  <h2>Финальная проверка</h2>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">1. Какие исходы называют благоприятствующими событию \(A\)?</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="true">Те, при которых \(A\) наступает</button>
+      <button class="quiz-btn" data-ans="false">Все исходы опыта</button>
+      <button class="quiz-btn" data-ans="false">Те, при которых \(A\) не наступает</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">2. По какой формуле считают вероятность при равновозможных исходах?</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">\(P = \dfrac{n}{m}\)</button>
+      <button class="quiz-btn" data-ans="true">\(P = \dfrac{m}{n}\)</button>
+      <button class="quiz-btn" data-ans="false">\(P = m + n\)</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">3. Бросают кубик. Какова вероятность события «выпало больше 4»?</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">\(\dfrac{1}{6}\)</button>
+      <button class="quiz-btn" data-ans="true">\(\dfrac{1}{3}\)</button>
+      <button class="quiz-btn" data-ans="false">\(\dfrac{1}{2}\)</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">4. В каких пределах может находиться вероятность события?</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">от \(-1\) до \(1\)</button>
+      <button class="quiz-btn" data-ans="true">от \(0\) до \(1\)</button>
+      <button class="quiz-btn" data-ans="false">от \(0\) до \(100\)</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">5. \(P(A) = 0{,}6\). Чему равна вероятность противоположного события?</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="true">\(0{,}4\)</button>
+      <button class="quiz-btn" data-ans="false">\(0{,}6\)</button>
+      <button class="quiz-btn" data-ans="false">\(1{,}6\)</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <div class="quiz-item" data-correct="true">
+    <div class="q-text">6. Всегда ли можно применять формулу \(P = \dfrac{m}{n}\)?</div>
+    <div class="quiz-btns">
+      <button class="quiz-btn" data-ans="false">Да, всегда</button>
+      <button class="quiz-btn" data-ans="true">Только при равновозможных исходах</button>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 30. Рефлексия ================= -->
+<section class="slide" data-num="30">
+  <span class="slide-num">Слайд 30</span>
+  <h2>Рефлексия</h2>
+
+  <div class="plate plate-mint">
+    <span class="plate-title">Сегодня я научился…</span>
+    <ul style="list-style:none; margin-left:0;">
+      <li>🟢 находить благоприятствующие исходы для события;</li>
+      <li>🟢 применять формулу \(P(A) = \dfrac{m}{n}\);</li>
+      <li>🟢 вычислять вероятность составного события;</li>
+      <li>🟢 пользоваться формулой \(P(\overline{A}) = 1 - P(A)\);</li>
+      <li>🟢 проверять, что \(0 \le P \le 1\).</li>
+    </ul>
+  </div>
+
+  <div class="hint">
+    <b>Домашнее задание:</b>
+    <ul>
+      <li>Выучить формулу \(P(A) = \dfrac{m}{n}\) и формулу противоположного события;</li>
+      <li>Бросают кубик. Найти вероятности: «выпало 2», «выпало нечётное», «выпало меньше 5»;</li>
+      <li>В коробке 4 красных, 6 синих и 10 белых шаров. Найти вероятность вытянуть синий шар и вероятность вытянуть не белый шар;</li>
+      <li>Придумать своё событие \(A\) и записать для него \(P(A)\) и \(P(\overline{A})\).</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= НАВИГАЦИЯ ================= -->
+<div class="nav">
+  <button id="prev">← Назад</button>
+  <button id="next">Вперёд →</button>
+</div>
+
+<script>
+  /* ============================================================
+     1) ФИЛЬТР СЛАЙДОВ ПО QUERY-ПАРАМЕТРУ
+     Примеры:
+       ?slides=1-3        → слайды 1, 2, 3
+       ?slides=1,5,8      → слайды 1, 5, 8
+       ?slides=10-15      → слайды с 10 по 15
+       ?slides=1-3,7,9    → комбинация
+     ============================================================ */
+  function applySlideFilter(){
+    const params = new URLSearchParams(location.search);
+    const filter = params.get('slides');
+    if (!filter) return;
+
+    const nums = new Set();
+    filter.split(',').forEach(part => {
+      part = part.trim();
+      if (part.includes('-')) {
+        const [a, b] = part.split('-').map(n => parseInt(n, 10));
+        if (!isNaN(a) && !isNaN(b)) {
+          for (let i = a; i <= b; i++) nums.add(i);
+        }
+      } else {
+        const n = parseInt(part, 10);
+        if (!isNaN(n)) nums.add(n);
+      }
+    });
+
+    if (nums.size === 0) return;
+
+    document.querySelectorAll('.slide').forEach(s => {
+      const n = parseInt(s.dataset.num, 10);
+      if (!nums.has(n)) s.remove();
+    });
+  }
+
+  /* ============================================================
+     2) НАВИГАЦИЯ С ПОДДЕРЖКОЙ ХЭША (#slide-N)
+     ============================================================ */
+  const slides = document.querySelectorAll('.slide');
+  const prevBtn = document.getElementById('prev');
+  const nextBtn = document.getElementById('next');
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  let current = 0;
+
+  function showSlide(index){
+    slides.forEach((s, i) => s.classList.toggle('active', i === index));
+    current = index;
+    prevBtn.disabled = (index === 0);
+    nextBtn.disabled = (index === slides.length - 1);
+    counter.textContent = (index + 1) + ' / ' + slides.length;
+    progress.style.width = ((index + 1) / slides.length * 100) + '%';
+    window.scrollTo({top:0, behavior:'smooth'});
+
+    const num = slides[index].dataset.num;
+    if (num && location.hash !== '#slide-' + num) {
+      history.replaceState(null, '', '#slide-' + num);
+    }
+  }
+
+  function openFromHash(){
+    const m = location.hash.match(/slide-(\d+)/);
+    if (m) {
+      const n = parseInt(m[1], 10);
+      let idx = -1;
+      slides.forEach((s, i) => {
+        if (parseInt(s.dataset.num, 10) === n) idx = i;
+      });
+      if (idx >= 0) { showSlide(idx); return; }
+    }
+    showSlide(0);
+  }
+
+  prevBtn.addEventListener('click', () => { if(current > 0) showSlide(current - 1); });
+  nextBtn.addEventListener('click', () => { if(current < slides.length - 1) showSlide(current + 1); });
+
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'ArrowLeft' && current > 0) showSlide(current - 1);
+    if(e.key === 'ArrowRight' && current < slides.length - 1) showSlide(current + 1);
+  });
+
+  window.addEventListener('hashchange', openFromHash);
+
+  /* ---------- Запуск ---------- */
+  applySlideFilter();   /* сначала фильтруем */
+  openFromHash();        /* потом открываем нужный слайд */
+
+  /* ============================================================
+     3) ТЕСТЫ
+     ============================================================ */
+  document.querySelectorAll('.quiz-item').forEach(item => {
+    const correct = item.dataset.correct === 'true';
+    const feedback = item.querySelector('.quiz-feedback');
+    const buttons = item.querySelectorAll('.quiz-btn');
+
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        buttons.forEach(b => b.disabled = true);
+        const userAns = btn.dataset.ans === 'true';
+
+        if (userAns === correct) {
+          btn.classList.add('correct');
+          feedback.textContent = '✔ Верно!';
+          feedback.className = 'quiz-feedback ok';
+        } else {
+          btn.classList.add('wrong');
+          buttons.forEach(b => {
+            if ((b.dataset.ans === 'true') === correct) b.classList.add('correct');
+          });
+          feedback.textContent = '✘ Неверно. Правильный ответ подсвечен.';
+          feedback.className = 'quiz-feedback no';
+        }
+      });
+    });
+  });
+
+  /* ============================================================
+     4) СОРТИРОВКА
+     ============================================================ */
+  document.querySelectorAll('.sort-container').forEach(container => {
+    const correctIndex = parseInt(container.dataset.correct, 10);
+    const cards = container.querySelectorAll('.sort-card');
+    let answered = false;
+
+    /* находим блок обратной связи: следующий .hint после контейнера */
+    const feedbackBlock = container.nextElementSibling && container.nextElementSibling.classList.contains('hint')
+      ? container.nextElementSibling
+      : null;
+
+    cards.forEach((card, idx) => {
+      card.addEventListener('click', () => {
+        if (answered) return;
+
+        if (idx === correctIndex) {
+          card.classList.add('correct');
+          if (feedbackBlock) {
+            feedbackBlock.style.display = 'block';
+            feedbackBlock.innerHTML = '<b>✔ Верно!</b> Правильный ответ подсвечен зелёным.';
+          }
+        } else {
+          card.classList.add('wrong');
+          cards[correctIndex].classList.add('correct');
+          if (feedbackBlock) {
+            feedbackBlock.style.display = 'block';
+            feedbackBlock.innerHTML = '<b>✘ Неверно.</b> Правильный ответ подсвечен зелёным.';
+          }
+        }
+        answered = true;
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
