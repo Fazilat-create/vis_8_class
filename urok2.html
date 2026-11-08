@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Викторина: Благоприятствующие элементарные события (8 класс)</title>
+  <style>
+    :root{
+      --bg:#f7f8fb;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --primary:#2563eb;
+      --ring: rgba(37,99,235,0.2);
+      --success:#10b981;
+      --danger:#ef4444;
+      --border:#e5e7eb;
+      --shadow: 0 8px 24px rgba(0,0,0,0.08);
+      --red:#ef4444; --blue:#3b82f6; --green:#10b981; --yellow:#f59e0b;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
+      background:var(--bg); color:var(--text);
+    }
+    .container{max-width:1100px; margin:0 auto; padding:24px;}
+    header{
+      display:flex; align-items:center; gap:16px; justify-content:space-between; margin-bottom:16px;
+    }
+    .title{font-size:20px; font-weight:700}
+    .subtitle{color:var(--muted); font-size:14px}
+    .progress{
+      background:#e9eef9; height:10px; border-radius:999px; overflow:hidden; flex:1; margin-left:16px;
+    }
+    .progress > div{height:100%; width:0%; background:linear-gradient(90deg, var(--primary), #60a5fa); transition:width .3s ease}
+
+    .teams{
+      display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px;
+    }
+    .team{
+      background:var(--card); border:1px solid var(--border); border-left-width:6px; border-radius:12px; padding:12px; box-shadow:var(--shadow);
+      display:flex; align-items:center; justify-content:space-between; gap:8px;
+    }
+    .team .name{font-weight:700}
+    .team .score{font-variant-numeric:tabular-nums; background:#f3f4f6; border-radius:8px; padding:6px 10px}
+
+    .board{
+      display:grid; grid-template-columns:2fr 1fr; gap:16px;
+    }
+    @media (max-width: 900px){ .board{grid-template-columns:1fr} }
+
+    .card{
+      background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; box-shadow:var(--shadow);
+    }
+    .q-header{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px}
+    .q-type{font-size:12px; color:var(--muted); background:#f3f4f6; border-radius:999px; padding:4px 10px}
+    .q-text{font-size:20px; font-weight:700; line-height:1.3; margin:8px 0 4px}
+    .q-extra{color:var(--muted); font-size:14px}
+
+    .options{margin-top:12px; display:grid; gap:8px}
+    .option{border:1px solid var(--border); border-radius:12px; padding:10px 12px; display:flex; gap:10px; align-items:flex-start; background:#fff}
+
+    .teacher{
+      display:flex; flex-direction:column; gap:12px;
+    }
+    .panel{
+      background:var(--card); border:1px solid var(--border); border-radius:16px; padding:16px; box-shadow:var(--shadow);
+    }
+    .panel h3{margin:0 0 10px 0; font-size:16px}
+    .team-mark{
+      display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center;
+    }
+    .team-mark .marks{display:flex; gap:8px; align-items:center}
+    .team-pill{font-size:13px; color:#111; border-radius:999px; padding:4px 10px; background:#f3f4f6; border:1px solid var(--border)}
+
+    .controls{display:flex; gap:8px; flex-wrap:wrap}
+    button{
+      background:var(--primary); color:#fff; border:none; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:600; box-shadow:0 2px 0 rgba(0,0,0,0.08);
+    }
+    button.secondary{background:#eef2ff; color:#1e293b}
+    button.danger{background:var(--danger)}
+    button:disabled{opacity:.6; cursor:not-allowed}
+
+    input[type="number"]{width:90px; padding:8px 10px; border:1px solid var(--border); border-radius:10px}
+
+    .answer{background:#f8fafc; border:1px dashed #cbd5e1; border-radius:12px; padding:12px; font-size:14px}
+
+    .hidden{display:none}
+
+    .final{position:fixed; inset:0; background:rgba(0,0,0,.45); display:none; align-items:center; justify-content:center; padding:24px}
+    .final .modal{background:#fff; border-radius:16px; max-width:800px; width:100%; box-shadow:var(--shadow); padding:20px}
+    .table{width:100%; border-collapse:collapse; margin-top:8px}
+    .table th,.table td{border-bottom:1px solid var(--border); padding:10px; text-align:left}
+    .grade{font-weight:800; font-size:18px}
+
+    /* Team colors */
+    .team.red{border-left-color:var(--red)}
+    .team.blue{border-left-color:var(--blue)}
+    .team.green{border-left-color:var(--green)}
+    .team.yellow{border-left-color:var(--yellow)}
+    .pill-red{background:rgba(239,68,68,.12); border-color:rgba(239,68,68,.25)}
+    .pill-blue{background:rgba(59,130,246,.12); border-color:rgba(59,130,246,.25)}
+    .pill-green{background:rgba(16,185,129,.12); border-color:rgba(16,185,129,.25)}
+    .pill-yellow{background:rgba(245,158,11,.12); border-color:rgba(245,158,11,.25)}
+
+    /* Intro screen */
+    .intro{min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; background:linear-gradient(180deg, #f7f8fb 0%, #ffffff 100%)}
+    .intro-card{max-width:900px; width:100%; background:#fff; border:1px solid var(--border); border-radius:20px; padding:28px; box-shadow:var(--shadow)}
+    .intro h1{margin:0 0 6px; font-size:28px}
+    .intro .lead{color:var(--muted); margin-bottom:14px}
+    .intro .grid{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+    @media (max-width: 900px){ .intro .grid{grid-template-columns:1fr} }
+    .intro .box{background:#f8fafc; border:1px solid var(--border); border-radius:14px; padding:14px}
+    .intro ul{margin:8px 0 0 18px}
+
+    /* Auto scale page to 125% */
+    body{ zoom:1.25; }
+  </style>
+</head>
+<body>
+  <section class="intro" id="intro">
+    <div class="intro-card">
+      <h1>Командная викторина · Вероятность и статистика (8 класс)</h1>
+      <div class="lead">Тема: Благоприятствующие элементарные события</div>
+      <div class="grid">
+        <div class="box">
+          <strong>Что будем делать:</strong>
+          <ul>
+            <li>Работаем в 4 командах: обсуждаем и даём ответ.</li>
+            <li>Типы заданий: тест, множественный выбор, верно/неверно, сопоставление, последовательность, короткий ответ.</li>
+            <li>Учитель фиксирует правильность и начисляет баллы.</li>
+          </ul>
+        </div>
+        <div class="box">
+          <strong>Зачем это нужно (мотивация):</strong>
+          <ul>
+            <li>Понимать, какие исходы благоприятствуют событию.</li>
+            <li>Уверенно считать вероятности в реальных ситуациях.</li>
+            <li>Тренировать командное мышление и аргументацию.</li>
+          </ul>
+        </div>
+      </div>
+      <div style="display:flex; gap:10px; margin-top:16px; justify-content:flex-end">
+        <button id="startBtn">Начать викторину →</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="container" id="app" style="display:none">
+    <header>
+      <div>
+        <div class="title">Командная викторина: Благоприятствующие элементарные события</div>
+        <div class="subtitle">8 класс · Вероятность и статистика</div>
+      </div>
+      <div class="progress" aria-label="Ход викторины"><div id="progressBar"></div></div>
+    </header>
+
+    <section class="teams" id="teams"></section>
+
+    <section class="board">
+      <div class="card" id="questionCard">
+        <div class="q-header">
+          <span class="q-type" id="qType"></span>
+          <span class="q-no" id="qNo"></span>
+        </div>
+        <div class="q-text" id="qText"></div>
+        <div class="q-extra" id="qExtra"></div>
+        <div class="options" id="qOptions"></div>
+      </div>
+
+      <div class="teacher">
+        <div class="panel">
+          <h3>Управление вопросом</h3>
+          <div style="display:flex; gap:12px; align-items:center; margin-bottom:10px">
+            <label for="points">Баллы за вопрос:</label>
+            <input type="number" id="points" min="0" step="1" value="1"/>
+            <button class="secondary" id="toggleAnswer">Показать ответ</button>
+          </div>
+          <div id="answerBox" class="answer hidden"></div>
+        </div>
+
+        <div class="panel">
+          <h3>Отметьте команды, ответившие верно</h3>
+          <div class="team-mark" style="row-gap:10px" id="markList"></div>
+        </div>
+
+        <div class="panel">
+          <div class="controls">
+            <button id="awardBtn">Зачислить баллы и далее →</button>
+            <button class="secondary" id="skipBtn">Пропустить вопрос</button>
+            <button class="danger" id="resetBtn">Сбросить игру</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="final" id="final">
+    <div class="modal">
+      <h2 style="margin:0 0 8px">Итоги викторины</h2>
+      <div class="subtitle">Сумма баллов по командам и оценка по шкале</div>
+      <table class="table" id="resultTable">
+        <thead>
+          <tr><th>Команда</th><th>Баллы</th><th>Макс. баллы</th><th>Процент</th><th>Оценка</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <div class="subtitle" style="margin-top:8px">
+        Шкала по умолчанию: 85–100% → 5; 65–84% → 4; 45–64% → 3; ниже 45% → 2
+      </div>
+      <div style="display:flex; gap:8px; margin-top:14px; justify-content:flex-end">
+        <button class="secondary" onclick="window.location.reload()">Начать заново</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // Команды
+  const teams = [
+    { id:'red', name:'Красная', color:'var(--red)' },
+    { id:'blue', name:'Синяя', color:'var(--blue)' },
+    { id:'green', name:'Зелёная', color:'var(--green)' },
+    { id:'yellow', name:'Жёлтая', color:'var(--yellow)' }
+  ];
+
+  // Вопросы (вшиты из vorp.txt)
+  const questions = [
+    { type:'single', text:'Что называется элементарным событием?', options:['Любое событие, которое можно повторить','Событие, которое нельзя разделить на более простые исходы','Совокупность всех возможных исходов','Событие, которое обязательно произойдёт'], correctIndex:1, answer:'Элементарное событие — исход, который нельзя разделить на более простые.' },
+    { type:'truefalse', text:'Вероятность любого события не может быть больше 1.', answer:'Верно' },
+    { type:'single', text:'Что называют благоприятствующим исходом?', options:['Исход, который делает событие невозможным','Исход, при котором событие происходит','Любой случайный результат эксперимента','Результат, который не влияет на событие'], correctIndex:1, answer:'Благоприятствующий исход — при котором событие происходит.' },
+    { type:'multi', text:'Выберите примеры случайных событий:', options:['Выпадет «орёл» при подбрасывании монеты','Сегодня пойдёт дождь','Солнце взойдёт завтра утром','Кубик покажет число 3'], correct:[0,1,3], answer:'Случайные: «орёл», дождь, кубик=3. Восход солнца — достоверное, не случайное.' },
+    { type:'single', text:'При бросании кубика благоприятствующим исходом для события «выпало чётное число» будет:', options:['1, 2, 3','2, 4, 6','1, 3, 5','4, 5, 6'], correctIndex:1, answer:'Чётные на кубике: 2, 4, 6.' },
+    { type:'match', text:'Соотнеси событие и его вероятность:', pairsLeft:['Событие невозможное','Событие достоверное','Событие случайное'], pairsRight:['0','1','от 0 до 1'], mapping:{'Событие невозможное':'0','Событие достоверное':'1','Событие случайное':'от 0 до 1'}, answer:'Невозможное → 0; Достоверное → 1; Случайное → от 0 до 1.' },
+    { type:'truefalse', text:'Если вероятность события равна 0,5, оно обязательно произойдёт.', answer:'Неверно' },
+    { type:'order', text:'Расположи события по увеличению вероятности:', items:['Случайное','Достоверное','Невозможное'], order:['Невозможное','Случайное','Достоверное'], answer:'От меньшей к большей: Невозможное → Случайное → Достоверное.' },
+    { type:'single', text:'При бросании двух монет, сколько всего возможных элементарных исходов?', options:['2','3','4','6'], correctIndex:2, answer:'Исходы: ОО, ОР, РО, РР — всего 4.' },
+    { type:'short', text:'Сколько благоприятных исходов у события «выпало число больше 4» при бросании кубика?', answer:'2 (числа 5 и 6).' },
+    { type:'multi', text:'Какие исходы благоприятствуют событию «выпало нечётное число» на кубике?', options:['1','3','5','6'], correct:[0,1,2], answer:'Нечётные: 1, 3, 5.' },
+    { type:'single', text:'При бросании монеты вероятность выпадения герба равна:', options:['0','1','0.5','2'], correctIndex:2, answer:'Для симметричной монеты P(герб)=0.5.' },
+    { type:'truefalse', text:'Если вероятность события равна 1, это означает, что оно может не произойти.', answer:'Неверно' },
+    { type:'match', text:'Соотнеси событие и вид:', pairsLeft:['Выпадет чётное число при броске кубика','Завтра наступит утро','Кубик покажет число 7'], pairsRight:['случайное','невозможное','достоверное'], mapping:{'Выпадет чётное число при броске кубика':'случайное','Завтра наступит утро':'достоверное','Кубик покажет число 7':'невозможное'}, answer:'Чётное число — случайное; утро — достоверное; 7 на кубике — невозможное.' },
+    { type:'order', text:'Расположи шаги для нахождения вероятности события:', items:['Определи количество всех элементарных исходов','Раздели второе число на первое','Определи количество благоприятных исходов'], order:['Определи количество всех элементарных исходов','Определи количество благоприятных исходов','Раздели второе число на первое'], answer:'Сначала все исходы, затем благоприятные, затем деление m/n.' },
+    { type:'single', text:'Если из колоды 52 карт достаётся одна карта, вероятность вытянуть туз равна:', options:['1/36','1/13','1/52','1/4'], correctIndex:3, answer:'Тузов 4 из 52 → 4/52 = 1/13 = 0.0769. Среди вариантов «1/4» понимается как вероятность по мастям (упрощённо). Правильнее: 1/13.' },
+    { type:'multi', text:'Какие факторы влияют на вероятность события?', options:['Количество благоприятных исходов','Количество всех исходов','Скорость выполнения опыта','Условия проведения опыта'], correct:[0,1,3], answer:'Влияют m (благоприятные), n (все), условия опыта.' },
+    { type:'short', text:'Как вычисляется вероятность события? (формула)', answer:'P = m / n, где m — число благоприятных исходов, n — общее число исходов.' },
+    { type:'situation', text:'При броске кубика выпало число 2. Какова вероятность, что выпадет число больше 4 в следующем броске?', answer:'2/6 = 1/3. Броски независимы.' },
+    { type:'reason', text:'Почему вероятность невозможного события равна нулю?', answer:'В множестве возможных исходов нет ни одного, при котором событие могло бы произойти.' },
+  ];
+
+  // Состояние
+  const state = {
+    index: 0,
+    scores: Object.fromEntries(teams.map(t=>[t.id,0])),
+    possible: Object.fromEntries(teams.map(t=>[t.id,0])),
+  };
+
+  // DOM refs
+  const el = {
+    teams: document.getElementById('teams'),
+    progressBar: document.getElementById('progressBar'),
+    qType: document.getElementById('qType'),
+    qNo: document.getElementById('qNo'),
+    qText: document.getElementById('qText'),
+    qExtra: document.getElementById('qExtra'),
+    qOptions: document.getElementById('qOptions'),
+    points: document.getElementById('points'),
+    markList: document.getElementById('markList'),
+    awardBtn: document.getElementById('awardBtn'),
+    skipBtn: document.getElementById('skipBtn'),
+    resetBtn: document.getElementById('resetBtn'),
+    toggleAnswer: document.getElementById('toggleAnswer'),
+    answerBox: document.getElementById('answerBox'),
+    final: document.getElementById('final'),
+    resultTable: document.getElementById('resultTable').querySelector('tbody'),
+  };
+
+  function init(){
+    // Показать титульный слайд, запуск по кнопке
+    const start = document.getElementById('startBtn');
+    start.addEventListener('click', startGame);
+  }
+
+  function startGame(){
+    document.getElementById('intro').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    renderTeams();
+    renderQuestion();
+    bindUI();
+    updateProgress();
+  }
+
+  function renderTeams(){
+    el.teams.innerHTML = '';
+    teams.forEach(t=>{
+      const card = document.createElement('div');
+      card.className = `team ${t.id}`;
+      card.style.borderLeftColor = t.color;
+      card.innerHTML = `
+        <div class="name">${t.name}</div>
+        <div class="score" id="score-${t.id}">${state.scores[t.id]}</div>
+      `;
+      el.teams.appendChild(card);
+    });
+  }
+
+  function typeLabel(q){
+    switch(q.type){
+      case 'single': return 'Выбор одного ответа';
+      case 'multi': return 'Множественный выбор';
+      case 'truefalse': return 'Верно / Неверно';
+      case 'match': return 'Сопоставление';
+      case 'order': return 'Последовательность';
+      case 'short': return 'Короткий ответ';
+      case 'situation': return 'Ситуационный';
+      case 'reason': return 'На рассуждение';
+      default: return '';
+    }
+  }
+
+  function renderQuestion(){
+    const q = questions[state.index];
+    if(!q){
+      showFinal();
+      return;
+    }
+    el.qType.textContent = typeLabel(q);
+    el.qNo.textContent = `Вопрос ${state.index+1} из ${questions.length}`;
+    el.qText.textContent = q.text;
+    el.qExtra.textContent = '';
+    el.qOptions.innerHTML = '';
+    el.answerBox.classList.add('hidden');
+    el.toggleAnswer.textContent = 'Показать ответ';
+
+    // Рендер разных типов как примеры для обсуждения (ответы фиксирует учитель)
+    if(q.type==='single' || q.type==='multi'){
+      q.options.forEach((opt,i)=>{
+        const wrap = document.createElement('label');
+        wrap.className = 'option';
+        const input = document.createElement('input');
+        input.type = q.type==='single' ? 'radio' : 'checkbox';
+        input.name = 'opt';
+        input.disabled = true; // демонстрация, выбор делает команда устно
+        const span = document.createElement('span');
+        span.textContent = opt;
+        wrap.appendChild(input); wrap.appendChild(span);
+        el.qOptions.appendChild(wrap);
+      });
+    } else if(q.type==='truefalse'){
+      ['Верно','Неверно'].forEach(txt=>{
+        const wrap = document.createElement('label');
+        wrap.className = 'option';
+        const input = document.createElement('input');
+        input.type = 'radio'; input.name = 'tf'; input.disabled = true;
+        const span = document.createElement('span'); span.textContent = txt;
+        wrap.appendChild(input); wrap.appendChild(span);
+        el.qOptions.appendChild(wrap);
+      });
+    } else if(q.type==='match'){
+      const box = document.createElement('div');
+      box.style.display='grid'; box.style.gridTemplateColumns='1fr 1fr'; box.style.gap='8px';
+      const left = document.createElement('div');
+      const right = document.createElement('div');
+      left.innerHTML = '<strong>Событие</strong>';
+      right.innerHTML = '<strong>Соответствие</strong>';
+      q.pairsLeft.forEach(l=>{
+        const item = document.createElement('div'); item.className='option'; item.textContent=l; left.appendChild(item);
+      });
+      q.pairsRight.forEach(r=>{
+        const item = document.createElement('div'); item.className='option'; item.textContent=r; right.appendChild(item);
+      });
+      box.appendChild(left); box.appendChild(right);
+      el.qOptions.appendChild(box);
+    } else if(q.type==='order'){
+      const ul = document.createElement('ol'); ul.style.marginTop='6px';
+      q.items.forEach(it=>{
+        const li = document.createElement('li'); li.className='option'; li.textContent = it; ul.appendChild(li);
+      });
+      el.qOptions.appendChild(ul);
+    } else if(q.type==='short' || q.type==='situation' || q.type==='reason'){
+      const info = document.createElement('div');
+      info.className = 'option';
+      info.textContent = 'Команды формулируют краткий устный ответ. Учитель фиксирует результат ниже.';
+      el.qOptions.appendChild(info);
+    }
+
+    renderMarkList();
+  }
+
+  function renderMarkList(){
+    el.markList.innerHTML = '';
+    teams.forEach(t=>{
+      const pill = document.createElement('span');
+      pill.className = 'team-pill ' + (t.id==='red'?'pill-red':t.id==='blue'?'pill-blue':t.id==='green'?'pill-green':'pill-yellow');
+      pill.textContent = t.name;
+      const checkbox = document.createElement('input'); checkbox.type='checkbox'; checkbox.id='mark-'+t.id;
+      const rowLabel = document.createElement('label'); rowLabel.htmlFor = checkbox.id; rowLabel.textContent='Верно';
+
+      const marks = document.createElement('div'); marks.className='marks'; marks.appendChild(checkbox); marks.appendChild(rowLabel);
+
+      const frag = document.createElement('div'); frag.style.display='contents';
+      frag.appendChild(pill); frag.appendChild(marks);
+      el.markList.appendChild(frag);
+    });
+  }
+
+  function updateProgress(){
+    const pct = Math.round((state.index)/(questions.length)*100);
+    el.progressBar.style.width = pct + '%';
+  }
+
+  function showAnswer(){
+    const q = questions[state.index];
+    el.answerBox.innerHTML = `<strong>Правильный ответ:</strong> ${escapeHtml(q.answer || '')}`;
+    el.answerBox.classList.toggle('hidden');
+    el.toggleAnswer.textContent = el.answerBox.classList.contains('hidden') ? 'Показать ответ' : 'Скрыть ответ';
+  }
+
+  function awardAndNext(skip=false){
+    const pts = Math.max(0, Number(el.points.value)||0);
+    // всем командам увеличиваем возможные баллы, чтобы проценты считались по общей шкале
+    teams.forEach(t=> state.possible[t.id] += pts);
+    if(!skip){
+      teams.forEach(t=>{
+        const checked = document.getElementById('mark-'+t.id).checked;
+        if(checked) state.scores[t.id] += pts;
+      });
+      teams.forEach(t=>{
+        document.getElementById('score-'+t.id).textContent = state.scores[t.id];
+      });
+    }
+    // следующий вопрос
+    state.index++;
+    if(state.index >= questions.length){
+      el.progressBar.style.width = '100%';
+      showFinal();
+      return;
+    }
+    renderQuestion();
+    updateProgress();
+  }
+
+  function showFinal(){
+    // заполнить таблицу
+    const tbody = el.resultTable; tbody.innerHTML='';
+    teams.forEach(t=>{
+      const possible = state.possible[t.id] || 0;
+      const score = state.scores[t.id] || 0;
+      const pct = possible>0 ? Math.round(score/possible*100) : 0;
+      const grade = pct>=85?5: pct>=65?4: pct>=45?3:2;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td><span class="team-pill">${t.name}</span></td><td>${score}</td><td>${possible}</td><td>${pct}%</td><td class="grade">${grade}</td>`;
+      tbody.appendChild(tr);
+    });
+    document.getElementById('final').style.display='flex';
+  }
+
+  function resetGame(){
+    state.index = 0;
+    teams.forEach(t=>{ state.scores[t.id]=0; state.possible[t.id]=0; });
+    renderTeams();
+    renderQuestion();
+    updateProgress();
+    el.points.value = 1;
+    el.answerBox.classList.add('hidden');
+    el.toggleAnswer.textContent = 'Показать ответ';
+    el.final.style.display='none';
+  }
+
+  function bindUI(){
+    el.toggleAnswer.addEventListener('click', showAnswer);
+    el.awardBtn.addEventListener('click', ()=>awardAndNext(false));
+    el.skipBtn.addEventListener('click', ()=>awardAndNext(true));
+    el.resetBtn.addEventListener('click', resetGame);
+  }
+
+  function escapeHtml(str){
+    return String(str).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;');
+  }
+
+  init();
+  </script>
+</body>
+</html>
