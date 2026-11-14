@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Рассеивание числовых данных и их отклонения</title>
+
+<script>
+  MathJax = {
+    tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+    svg: { fontCache: 'global' }
+  };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+<style>
+  :root{
+    --main:#4a86e8;
+    --dark:#2b5a99;
+    --light:#e8f0fe;
+    --border:#a4c2f4;
+    --bg:#f8fbff;
+    --green:#27ae60;
+    --red:#e74c3c;
+
+    --plate-mint-bg:#d9f2e6;
+    --plate-mint-br:#27ae60;
+    --plate-teal-bg:#d4f0ee;
+    --plate-teal-br:#16a085;
+    --plate-lime-bg:#eef7d4;
+    --plate-lime-br:#9acd32;
+    --plate-orange-bg:#fde9d3;
+    --plate-orange-br:#e67e22;
+    --plate-blue-bg:#e8f0fe;
+    --plate-blue-br:#4a86e8;
+
+    --hint-bg:#fef9e0;
+    --hint-bar:#f1c40f;
+
+    --text-scale: 1.05;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    font-family:"Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size:calc(20px * var(--text-scale));
+    background:var(--bg);
+    color:#1a2b3c;
+    line-height:1.55;
+  }
+
+  .progress{
+    position:fixed; top:0; left:0; height:6px;
+    background:var(--main); width:0%; z-index:100;
+    transition:width .3s ease;
+  }
+  .counter{
+    position:fixed; top:14px; right:20px; z-index:100;
+    background:#fff; color:var(--dark);
+    border:2px solid var(--border); border-radius:24px;
+    padding:6px 20px;
+    font-size:17px; font-weight:800;
+    box-shadow:0 4px 14px rgba(74,134,232,.2);
+  }
+
+  .slide{
+    display:none;
+    max-width:1100px;
+    margin:70px auto 130px;
+    background:#fff;
+    border-radius:20px;
+    box-shadow:0 18px 46px rgba(74,134,232,.15);
+    padding:42px 52px 52px;
+    position:relative;
+    animation:fade .35s ease;
+  }
+  .slide.active{display:block;}
+  @keyframes fade{
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:none;}
+  }
+
+  .slide-num{
+    position:absolute; top:18px; left:26px;
+    font-size:15px; color:var(--border); font-weight:800;
+  }
+
+  h1{
+    font-size:calc(2.1rem * var(--text-scale));
+    color:var(--dark);
+    text-align:center;
+    margin:0 0 12px;
+    font-weight:900;
+  }
+  .subtitle{
+    text-align:center;
+    color:var(--main);
+    font-size:calc(1.15rem * var(--text-scale));
+    margin-bottom:32px;
+    font-weight:700;
+  }
+
+  h2{
+    font-size:calc(1.6rem * var(--text-scale));
+    color:#fff;
+    margin:0 0 24px;
+    padding:12px 24px;
+    background:var(--main);
+    border-radius:14px;
+    font-weight:900;
+    box-shadow:0 8px 20px rgba(74,134,232,.3);
+    display:inline-block;
+  }
+
+  p{margin:12px 0; font-size:calc(19px * var(--text-scale));}
+  ul,ol{margin:12px 0 12px 26px; padding:0;}
+  li{margin:8px 0; font-size:calc(19px * var(--text-scale)); font-weight:500;}
+
+  .plate{
+    border-radius:18px;
+    padding:22px 28px;
+    margin:20px 0;
+    border:2px solid;
+  }
+  .plate-title{
+    display:inline-block;
+    font-size:calc(1.2rem * var(--text-scale));
+    font-weight:900;
+    padding:8px 22px;
+    border-radius:12px;
+    margin-bottom:14px;
+    color:#fff;
+  }
+  .plate-mint{background:var(--plate-mint-bg); border-color:var(--plate-mint-br);}
+  .plate-mint .plate-title{background:var(--plate-mint-br);}
+  .plate-teal{background:var(--plate-teal-bg); border-color:var(--plate-teal-br);}
+  .plate-teal .plate-title{background:var(--plate-teal-br);}
+  .plate-lime{background:var(--plate-lime-bg); border-color:var(--plate-lime-br);}
+  .plate-lime .plate-title{background:var(--plate-lime-br);}
+  .plate-orange{background:var(--plate-orange-bg); border-color:var(--plate-orange-br);}
+  .plate-orange .plate-title{background:var(--plate-orange-br);}
+  .plate-blue{background:var(--plate-blue-bg); border-color:var(--plate-blue-br);}
+  .plate-blue .plate-title{background:var(--plate-blue-br);}
+
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  .grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
+
+  .hint{
+    background:var(--hint-bg);
+    border-left:8px solid var(--hint-bar);
+    border-radius:10px;
+    padding:16px 22px;
+    margin:18px 0;
+    font-size:calc(18px * var(--text-scale));
+    font-weight:600;
+  }
+  .hint b{color:#b45309;}
+
+  .task-box{
+    background:var(--light);
+    border:2px solid var(--border);
+    border-radius:18px;
+    padding:22px 28px;
+    margin:20px 0;
+    position:relative;
+  }
+  
+  .task-num {
+    position: absolute;
+    top: -15px; left: 20px;
+    background: var(--main);
+    color: #fff;
+    padding: 4px 15px;
+    border-radius: 20px;
+    font-weight: 900;
+    font-size: 16px;
+  }
+
+  /* Клетчатое поле для решений */
+  .solution-grid{
+    background-color: #fff;
+    background-image: 
+      linear-gradient(90deg, #d0e6d8 1px, transparent 1px),
+      linear-gradient(#d0e6d8 1px, transparent 1px);
+    background-size: 25px 25px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    min-height: 100px;
+    margin-top: 15px;
+    width: 100%;
+  }
+
+  .big-formula{
+    background:var(--plate-lime-bg);
+    border:3px solid var(--plate-lime-br);
+    border-radius:18px;
+    padding:24px 28px;
+    text-align:center;
+    margin:22px 0;
+  }
+  .big-formula .f-line{
+    font-size:calc(1.5rem * var(--text-scale));
+    color:var(--dark);
+    font-weight:900;
+    margin:8px 0;
+  }
+
+  /* --- Стили для интерактивных вычислений --- */
+  .calc-input {
+    width: 100px;
+    padding: 10px;
+    font-size: 1.2rem;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+    color: var(--dark);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .calc-input:focus {
+    border-color: var(--main);
+  }
+  .calc-input.correct { border-color: var(--green); background: #e8f6ed; }
+  .calc-input.wrong { border-color: var(--red); background: #fde9d3; }
+
+  .btn-check {
+    background: var(--main);
+    color: #fff;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: background 0.2s;
+  }
+  .btn-check:hover { background: var(--dark); }
+
+  .btn-hint {
+    background: #fff;
+    color: #d35400;
+    border: 2px solid #e67e22;
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    display: inline-block;
+    transition: background 0.2s;
+  }
+  .btn-hint:hover { background: #fde9d3; }
+  
+  .hint-content {
+    display: none;
+    background: #fff;
+    border-left: 4px solid #e67e22;
+    padding: 15px;
+    margin-top: 10px;
+    border-radius: 0 8px 8px 0;
+    font-size: 1rem;
+  }
+
+  .calc-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 15px 0;
+    padding: 15px;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+
+  /* Визуализация числовой оси */
+  .number-line-container {
+    margin: 40px 10px;
+    position: relative;
+    height: 80px;
+    background: #fff;
+    border-radius: 10px;
+    padding: 0 20px;
+  }
+  .line-axis {
+    position: absolute;
+    top: 40px; left: 0; right: 0;
+    height: 2px;
+    background: #555;
+  }
+  .line-tick {
+    position: absolute;
+    top: 30px;
+    width: 2px; height: 20px;
+    background: #555;
+    transform: translateX(-50%);
+  }
+  .line-label {
+    position: absolute;
+    top: 55px;
+    transform: translateX(-50%);
+    font-weight: bold;
+    font-size: 15px;
+  }
+  .dot {
+    position: absolute;
+    top: 34px;
+    width: 14px; height: 14px;
+    background: var(--main);
+    border-radius: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+  }
+  .mean-line {
+    position: absolute;
+    top: 10px; bottom: 10px;
+    width: 3px;
+    border-left: 3px dashed #e74c3c;
+    transform: translateX(-50%);
+    z-index: 1;
+  }
+  .mean-text {
+    position: absolute;
+    top: -10px;
+    transform: translateX(-50%);
+    color: #e74c3c;
+    font-weight: 900;
+    font-size: 14px;
+  }
+
+  .nav{
+    position:fixed; bottom:22px; left:50%; transform:translateX(-50%);
+    display:flex; gap:14px; z-index:100;
+  }
+  .nav button{
+    background:var(--main); color:#fff; border:none;
+    padding:12px 28px; border-radius:32px;
+    font-size:17px; font-weight:800; cursor:pointer;
+    box-shadow:0 8px 22px rgba(74,134,232,.4);
+    transition:background .2s, transform .1s;
+  }
+  .nav button:hover{background:var(--dark);}
+  .nav button:disabled{background:#b3d4ec; cursor:default; box-shadow:none;}
+
+  @media (max-width:760px){
+    .slide{margin:60px 12px 130px; padding:24px 18px 32px;}
+    .grid-2,.grid-3{grid-template-columns:1fr;}
+    h1{font-size:1.6rem;}
+    h2{font-size:1.35rem; padding:10px 18px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="counter" id="counter">1 / 17</div>
+
+<!-- ================= СЛАЙД 1. Титул ================= -->
+<section class="slide active" data-num="1">
+  <span class="slide-num">Слайд 1</span>
+  <h1>Рассеивание числовых данных и их отклонения</h1>
+  <p class="subtitle">Урок 1. Введение в статистику</p>
+
+  <div class="plate plate-blue" style="text-align:center; margin-top: 50px;">
+    <h3 style="font-size: 2rem; margin:0;">Класс: 8</h3>
+    <p style="font-size: 1.2rem; margin-top: 10px;">Дата: ______________</p>
+  </div>
+  
+  <div class="hint" style="margin-top: 40px; text-align:center; font-size: 1.2rem;">
+    <b>Цель урока:</b> Научиться измерять, насколько сильно данные отличаются друг от друга и от среднего значения.
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 2. Актуализация: Среднее ================= -->
+<section class="slide" data-num="2">
+  <span class="slide-num">Слайд 2</span>
+  <h2>Повторение: Среднее арифметическое</h2>
+
+  <div class="plate plate-blue">
+    <p><b>Среднее арифметическое</b> — это сумма всех чисел, делённая на их количество.</p>
+  </div>
+
+  <div class="calc-row" id="task-mean-1">
+    <span>1) Ряд: <b>2, 4, 6, 8, 10</b>. Найдите среднее:</span>
+    <input type="text" class="calc-input" data-answer="6" placeholder="Ответ">
+    <button class="btn-check" onclick="checkCalc('task-mean-1')">Проверить</button>
+  </div>
+
+  <div class="calc-row" id="task-mean-2">
+    <span>2) Ряд: <b>4, 9, 2, 6, 9, 1</b>. Найдите среднее (округли до десятых):</span>
+    <input type="text" class="calc-input" data-answer="5.2" placeholder="Ответ">
+    <button class="btn-check" onclick="checkCalc('task-mean-2')">Проверить</button>
+  </div>
+
+  <div>
+    <button class="btn-hint" onclick="toggleHint('hint-mean')">💡 Показать подсказку</button>
+    <div class="hint-content" id="hint-mean">
+      <b>Формула:</b> \(\bar{x} = \dfrac{x_1 + x_2 + \dots + x_n}{n}\)<br><br>
+      <b>Пример для 1):</b> Складываем все числа: \(2 + 4 + 6 + 8 + 10 = 30\).<br>
+      Делим на количество чисел (их 5): \(30 \div 5 = 6\).
+    </div>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 3. Актуализация: Мода ================= -->
+<section class="slide" data-num="3">
+  <span class="slide-num">Слайд 3</span>
+  <h2>Повторение: Мода</h2>
+
+  <div class="plate plate-teal">
+    <p><b>Мода</b> — это число, которое встречается в ряду чаще всего.</p>
+  </div>
+
+  <div class="calc-row" id="task-mode-1">
+    <span>1) Ряд: <b>3, 5, 7, 5, 8, 5, 9</b>. Найдите моду:</span>
+    <input type="text" class="calc-input" data-answer="5" placeholder="Ответ">
+    <button class="btn-check" onclick="checkCalc('task-mode-1')">Проверить</button>
+  </div>
+
+  <div class="calc-row" id="task-mode-2">
+    <span>2) Ряд: <b>12, 15, 12, 18, 12, 20, 15</b>. Найдите моду:</span>
+    <input type="text" class="calc-input" data-answer="12" placeholder="Ответ">
+    <button class="btn-check" onclick="checkCalc('task-mode-2')">Проверить</button>
+  </div>
+
+  <div>
+    <button class="btn-hint" onclick="toggleHint('hint-mode')">💡 Показать подсказку</button>
+    <div class="hint-content" id="hint-mode">
+      <b>Как найти:</b> Посчитайте, сколько раз встречается каждое число.<br><br>
+      <b>Пример для 1):</b> Число 3 — 1 раз, 5 — 3 раза, 7 — 1 раз, 8 — 1 раз, 9 — 1 раз.<br>
+      Чаще всего встречается 5, значит мода = 5.
+    </div>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 4. Актуализация: Медиана ================= -->
+<section class="slide" data-num="4">
+  <span class="slide-num">Слайд 4</span>
+  <h2>Повторение: Медиана</h2>
+
+  <div class="plate plate-lime">
+    <p><b>Медиана</b> — это число, которое стоит посередине упорядоченного ряда.</p>
+    <p><i>Если чисел чётное количество, медиана — это среднее арифметическое двух чисел посередине.</i></p>
+  </div>
+
+  <div class="calc-row" id="task-med-1">
+    <span>1) Ряд: <b>7, 2, 9, 4, 5</b>. Найдите медиану:</span>
+    <input type="text" class="calc-input" data-answer="5" placeholder="Ответ">
+    <button class="btn-check" onclick="checkCalc('task-med-1')">Проверить</button>
+  </div>
+
+  <div class="calc-row" id="task-med-2">
+    <span>2) Ряд: <b>4, 9, 2, 6, 9, 1</b>. Найдите медиану:</span>
+    <input type="text" class="calc-input" data-answer="5" placeholder="Ответ">
+    <button class="btn-check" onclick="checkCalc('task-med-2')">Проверить</button>
+  </div>
+
+  <div>
+    <button class="btn-hint" onclick="toggleHint('hint-med')">💡 Показать подсказку</button>
+    <div class="hint-content" id="hint-med">
+      <b>Шаг 1:</b> Обязательно упорядочите ряд по возрастанию!<br>
+      <b>Шаг 2:</b> Найдите число (или два числа) в центре.<br><br>
+      <b>Пример для 2):</b> Ряд 4, 9, 2, 6, 9, 1 упорядочиваем: 1, 2, 4, 6, 9, 9.<br>
+      В центре стоят 4 и 6. Их среднее: \((4 + 6) \div 2 = 5\).
+    </div>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 5. Актуализация: Размах ================= -->
+<section class="slide" data-num="5">
+  <span class="slide-num">Слайд 5</span>
+  <h2>Повторение: Размах</h2>
+
+  <div class="plate plate-orange">
+    <p><b>Размах</b> — это разность между наибольшим и наименьшим значением ряда.</p>
+  </div>
+
+  <div class="calc-row" id="task-range-1">
+    <span>1) Ряд: <b>12, 4, 8, 15, 7</b>. Найдите размах:</span>
+    <input type="text" class="calc-input" data-answer="11" placeholder="Ответ">
+    <button class="btn-check" onclick="checkCalc('task-range-1')">Проверить</button>
+  </div>
+
+  <div class="calc-row" id="task-range-2">
+    <span>2) Ряд: <b>1.5, 2.8, 1.1, 3.0, 2.2</b>. Найдите размах:</span>
+    <input type="text" class="calc-input" data-answer="1.9" placeholder="Ответ">
+    <button class="btn-check" onclick="checkCalc('task-range-2')">Проверить</button>
+  </div>
+
+  <div>
+    <button class="btn-hint" onclick="toggleHint('hint-range')">💡 Показать подсказку</button>
+    <div class="hint-content" id="hint-range">
+      <b>Формула:</b> Размах = max — min.<br><br>
+      <b>Пример для 1):</b> Самое большое число — 15, самое маленькое — 4.<br>
+      \(15 - 4 = 11\).
+    </div>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 6. Наглядность (Проблема) ================= -->
+<section class="slide" data-num="6">
+  <span class="slide-num">Слайд 6</span>
+  <h2>Проблема: только среднего мало</h2>
+
+  <p>Представьте двух учеников, которые сдали 5 тестов. Их баллы:</p>
+  
+  <div class="grid-2">
+    <div class="plate plate-blue">
+      <span class="plate-title">Ученик А</span>
+      <p style="text-align:center; font-size:1.2rem; font-weight:bold;">5, 5, 5, 5, 5</p>
+      <p style="text-align:center;">Средний балл: <b>5</b></p>
+    </div>
+    <div class="plate plate-orange">
+      <span class="plate-title">Ученик Б</span>
+      <p style="text-align:center; font-size:1.2rem; font-weight:bold;">1, 3, 5, 7, 9</p>
+      <p style="text-align:center;">Средний балл: <b>5</b></p>
+    </div>
+  </div>
+
+  <div class="hint">
+    <b>Вопрос:</b> У них одинаковый средний балл, но результаты сильно отличаются. Как описать это отличие математически?
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 7. Наглядность (Числовая прямая) ================= -->
+<section class="slide" data-num="7">
+  <span class="slide-num">Слайд 7</span>
+  <h2>Что такое рассеивание?</h2>
+
+  <p>Посмотрим на числовую прямую. Красная пунктирная линия — это среднее значение.</p>
+
+  <div class="plate plate-blue" style="padding-bottom: 10px;">
+    <span class="plate-title">Ученик А (все баллы одинаковые)</span>
+    <div class="number-line-container">
+      <div class="line-axis"></div>
+      <div class="line-tick" style="left: 10%;"></div><div class="line-label" style="left: 10%;">1</div>
+      <div class="line-tick" style="left: 30%;"></div><div class="line-label" style="left: 30%;">3</div>
+      <div class="line-tick" style="left: 50%;"></div><div class="line-label" style="left: 50%;">5</div>
+      <div class="line-tick" style="left: 70%;"></div><div class="line-label" style="left: 70%;">7</div>
+      <div class="line-tick" style="left: 90%;"></div><div class="line-label" style="left: 90%;">9</div>
+      
+      <div class="mean-line" style="left: 50%;"></div>
+      <div class="mean-text" style="left: 50%;">Среднее</div>
+      <div class="dot" style="left: 50%;"></div>
+    </div>
+    <p style="text-align:center;">Данные "кучкуются" в одной точке. <b>Рассеивания нет.</b></p>
+  </div>
+
+  <div class="plate plate-orange" style="padding-bottom: 10px;">
+    <span class="plate-title">Ученик Б (баллы разные)</span>
+    <div class="number-line-container">
+      <div class="line-axis"></div>
+      <div class="line-tick" style="left: 10%;"></div><div class="line-label" style="left: 10%;">1</div>
+      <div class="line-tick" style="left: 30%;"></div><div class="line-label" style="left: 30%;">3</div>
+      <div class="line-tick" style="left: 50%;"></div><div class="line-label" style="left: 50%;">5</div>
+      <div class="line-tick" style="left: 70%;"></div><div class="line-label" style="left: 70%;">7</div>
+      <div class="line-tick" style="left: 90%;"></div><div class="line-label" style="left: 90%;">9</div>
+
+      <div class="mean-line" style="left: 50%;"></div>
+      <div class="mean-text" style="left: 50%;">Среднее</div>
+      <div class="dot" style="left: 10%;"></div>
+      <div class="dot" style="left: 30%;"></div>
+      <div class="dot" style="left: 50%;"></div>
+      <div class="dot" style="left: 70%;"></div>
+      <div class="dot" style="left: 90%;"></div>
+    </div>
+    <p style="text-align:center;">Данные разбросаны далеко от среднего. <b>Рассеивание большое.</b></p>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 8. Теория (Начало) ================= -->
+<section class="slide" data-num="8">
+  <span class="slide-num">Слайд 8</span>
+  <h2>Что такое рассеивание данных?</h2>
+
+  <div class="plate plate-mint">
+    <p>Обычно главной статистической мерой является <b>среднее арифметическое</b>. Но часто знания одного среднего бывает недостаточно, чтобы составить полное представление об изучаемом явлении.</p>
+    <p>Чтобы более подробно охарактеризовать данные, нужно учесть, насколько далеко отдельные значения отклоняются от их среднего арифметического.</p>
+    <p>Сначала рассмотрим простейший случай, когда все данные немногочисленны и представлены простым рядом чисел.</p>
+  </div>
+
+  <div class="plate plate-lime">
+    <span class="plate-title">Важное понятие</span>
+    <p><b>Отклонение</b> — это разность между конкретным значением ряда и средним арифметическим этого ряда.</p>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 9. Теория (Формулы) ================= -->
+<section class="slide" data-num="9">
+  <span class="slide-num">Слайд 9</span>
+  <h2>Как найти отклонения?</h2>
+
+  <p>Пусть дан ряд: \(x_1, x_2, \dots, x_n\). Среднее обозначим как \(\bar{x}\) (икс с чертой).</p>
+
+  <div class="big-formula">
+    <p>Среднее арифметическое:</p>
+    <div class="f-line">\(\bar{x} = \dfrac{x_1 + x_2 + \dots + x_n}{n}\)</div>
+    <hr style="border:1px solid var(--plate-lime-br); margin: 20px 0;">
+    <p>Отклонение каждого значения:</p>
+    <div class="f-line">\(d_i = x_i - \bar{x}\)</div>
+  </div>
+
+  <div class="hint">
+    <b>Свойство отклонений:</b> Сумма всех отклонений всегда равна нулю. В математике это свойство используется для проверки правильности вычислений.
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 10. Закрепление. Задача 301 ================= -->
+<section class="slide" data-num="10">
+  <span class="slide-num">Слайд 10</span>
+  <h2>Закрепление темы</h2>
+
+  <div class="task-box">
+    <span class="task-num">Задача №301</span>
+    <p style="margin-top: 10px;">Для данных числовых наборов нанесите их на числовую прямую или изобразите на диаграмме. Сравните рассеивание этих двух наборов. У какого из них рассеивание больше?</p>
+    
+    <div class="grid-2" style="margin-top: 20px;">
+      <div>
+        <p><b>а)</b> 1, 3, 5, 2, 1, 3, 2, 3 и 4, 4, 5, 5, 6, 6, 6;</p>
+      </div>
+      <div>
+        <p><b>б)</b> 1, 3, 3, 2, 1, 3, 2, 3 и 2, 3, 4, 5, 5, 6, 6, 6;</p>
+      </div>
+    </div>
+
+    <div class="hint">Попробуйте отметить числа точками на числовой оси (от 1 до 6) и посмотреть, где они "кучкуются", а где разбросаны.</div>
+    <div class="solution-grid" style="min-height: 150px;"></div>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 11. Задача 302 и 303 ================= -->
+<section class="slide" data-num="11">
+  <span class="slide-num">Слайд 11</span>
+  <h2>Задачи на сравнение</h2>
+
+  <div class="task-box">
+    <span class="task-num">Задача №302</span>
+    <p style="margin-top: 10px;">Даны два набора чисел (рис. 73). Сравните их рассеивание. (Если нет картинки, сравниваем по записи):</p>
+    <p>1, 3, 5, 3, 3, 3, 3 и 7, 7, 7, 7, 8, 8, 8, 8, 9.</p>
+    <div class="solution-grid" style="min-height: 100px;"></div>
+  </div>
+
+  <div class="task-box">
+    <span class="task-num">Задача №303</span>
+    <p style="margin-top: 10px;">На рисунке 74 изображены две диаграммы рассеивания. Пользуясь масштабом, найдите среднее арифметическое результатов измерений, представленных на каждой диаграмме.</p>
+    <div class="solution-grid" style="min-height: 100px;"></div>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 12. Задача 304 ================= -->
+<section class="slide" data-num="12">
+  <span class="slide-num">Слайд 12</span>
+  <h2>Медицинская задача</h2>
+
+  <div class="task-box">
+    <span class="task-num">Задача №304</span>
+    <p style="margin-top: 10px;">Распределение температуры тела 10 больных: первая неделя (t) по 1 дню (в градусах): 37, 38, 37, 37, 36, 38, 37, 38, 36, 37; вторая неделя: 37, 37, 37, 38, 37, 36, 38, 37, 36, 37.</p>
+    <p>а) Найдите среднюю температуру за первую неделю и за вторую.</p>
+    <p>б) Сравните рассеивание температуры.</p>
+    <div class="solution-grid" style="min-height: 150px;"></div>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 13. Задача 305 и 306 ================= -->
+<section class="slide" data-num="13">
+  <span class="slide-num">Слайд 13</span>
+  <h2>Работа с отклонениями</h2>
+
+  <div class="task-box">
+    <span class="task-num">Задача №305</span>
+    <p style="margin-top: 10px;">Найдите отклонения от среднего арифметического для набора чисел:</p>
+    <p>а) 1, 4, 5, 6, 7;</p>
+    <p>б) 0,5; 0,4; 0,3; 0,2; 0,1.</p>
+    <div class="solution-grid" style="min-height: 100px;"></div>
+  </div>
+
+  <div class="task-box">
+    <span class="task-num">Задача №306</span>
+    <p style="margin-top: 10px;">Дан числовой набор. Известно, что сумма отклонений от среднего (кроме одного) равна <b>-0,37</b>. Найдите неизвестное отклонение.</p>
+    <div class="hint" style="margin-top: 10px;">Вспомните: сумма ВСЕХ отклонений равна нулю!</div>
+    <div class="solution-grid" style="min-height: 80px;"></div>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 14. Задача 307 и 308 ================= -->
+<section class="slide" data-num="14">
+  <span class="slide-num">Слайд 14</span>
+  <h2>Практические приложения</h2>
+
+  <div class="task-box">
+    <span class="task-num">Задача №307</span>
+    <p style="margin-top: 10px;">Могут ли отклонения измеряемой величины от среднего значения быть: </p>
+    <p>а) только положительными; б) только отрицательными?</p>
+    <div class="solution-grid" style="min-height: 80px;"></div>
+  </div>
+
+  <div class="task-box">
+    <span class="task-num">Задача №308</span>
+    <p style="margin-top: 10px;">В таблице показаны средние месячные температуры (в градусах). <i>(Для решения используйте данные из учебника: 1) -16, -14, -6, 5, 12, 16, 18, 15, 9, 2, -6, -13. 2) -12, -10, -4, 6, 11, 15, 17, 14, 10, 3, -3, -9)</i>.</p>
+    <p>а) Найдите среднюю годовую температуру.</p>
+    <p>б) Сравните отклонения за эти годы (если данные соответствуют двум разным городам/годам).</p>
+    <div class="solution-grid" style="min-height: 150px;"></div>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 15. Физкультминутка ================= -->
+<section class="slide" data-num="15">
+  <span class="slide-num">Слайд 15</span>
+  <h2 style="background: #5b9bd5;">Физкультминутка</h2>
+
+  <div style="text-align: center; margin: 40px 0;">
+    <p style="font-size: 1.5rem; font-weight: bold; color: #2b5a99;">Зарядка для глаз и рук</p>
+    
+    <div class="plate plate-blue" style="text-align: left; max-width: 800px; margin: 0 auto;">
+      <ol style="font-size: 1.2rem; line-height: 2;">
+        <li>Закройте глаза и расслабьтесь (5 секунд).</li>
+        <li>Откройте глаза, посмотрите вверх, затем вниз, не поворачивая головы (по 3 раза).</li>
+        <li>Посмотрите налево, затем направо (по 3 раза).</li>
+        <li>Сделайте круговые движения глазами по часовой стрелке, затем против (по 3 раза).</li>
+        <li>Потянитесь руками вверх, разомните пальцы.</li>
+      </ol>
+    </div>
+    
+    <p style="margin-top: 30px; font-size: 3rem;">🐈</p>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 16. Домашнее задание ================= -->
+<section class="slide" data-num="16">
+  <span class="slide-num">Слайд 16</span>
+  <h2>Рефлексия и Домашнее задание</h2>
+
+  <div class="plate plate-mint">
+    <span class="plate-title">Рефлексия</span>
+    <p>Оцените свою работу на уроке:</p>
+    <ul style="list-style-type: none; padding-left: 0;">
+      <li>🟢 <b>Я всё понял</b> (зеленый)</li>
+      <li>🟡 <b>Удовлетворительно, не всё понятно</b> (желтый)</li>
+      <li>🔴 <b>Мне неясно, есть вопросы</b> (красный)</li>
+    </ul>
+  </div>
+
+  <div class="hint">
+    <b>Домашнее задание (из учебника):</b>
+    <ul>
+      <li>Прочитать параграф в учебнике (пункт про рассеивание данных).</li>
+      <li>№ 309, № 310 (письменно в тетради).</li>
+      <li>Повторить, как находится среднее арифметическое.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= НАВИГАЦИЯ ================= -->
+<div class="nav">
+  <button id="prev">← Назад</button>
+  <button id="next">Вперёд →</button>
+</div>
+
+<script>
+  function applySlideFilter(){
+    const params = new URLSearchParams(location.search);
+    const filter = params.get('slides');
+    if (!filter) return;
+
+    const nums = new Set();
+    filter.split(',').forEach(part => {
+      part = part.trim();
+      if (part.includes('-')) {
+        const [a, b] = part.split('-').map(n => parseInt(n, 10));
+        if (!isNaN(a) && !isNaN(b)) {
+          for (let i = a; i <= b; i++) nums.add(i);
+        }
+      } else {
+        const n = parseInt(part, 10);
+        if (!isNaN(n)) nums.add(n);
+      }
+    });
+
+    if (nums.size === 0) return;
+
+    document.querySelectorAll('.slide').forEach(s => {
+      const n = parseInt(s.dataset.num, 10);
+      if (!nums.has(n)) s.remove();
+    });
+  }
+
+  const slides = document.querySelectorAll('.slide');
+  const prevBtn = document.getElementById('prev');
+  const nextBtn = document.getElementById('next');
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  let current = 0;
+
+  function showSlide(index){
+    slides.forEach((s, i) => s.classList.toggle('active', i === index));
+    current = index;
+    prevBtn.disabled = (index === 0);
+    nextBtn.disabled = (index === slides.length - 1);
+    counter.textContent = (index + 1) + ' / ' + slides.length;
+    progress.style.width = ((index + 1) / slides.length * 100) + '%';
+    window.scrollTo({top:0, behavior:'smooth'});
+
+    const num = slides[index].dataset.num;
+    if (num && location.hash !== '#slide-' + num) {
+      history.replaceState(null, '', '#slide-' + num);
+    }
+  }
+
+  function openFromHash(){
+    const m = location.hash.match(/slide-(\d+)/);
+    if (m) {
+      const n = parseInt(m[1], 10);
+      let idx = -1;
+      slides.forEach((s, i) => {
+        if (parseInt(s.dataset.num, 10) === n) idx = i;
+      });
+      if (idx >= 0) { showSlide(idx); return; }
+    }
+    showSlide(0);
+  }
+
+  prevBtn.addEventListener('click', () => { if(current > 0) showSlide(current - 1); });
+  nextBtn.addEventListener('click', () => { if(current < slides.length - 1) showSlide(current + 1); });
+
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'ArrowLeft' && current > 0) showSlide(current - 1);
+    if(e.key === 'ArrowRight' && current < slides.length - 1) showSlide(current + 1);
+  });
+
+  window.addEventListener('hashchange', openFromHash);
+
+  /* ============================================================
+     ЛОГИКА ДЛЯ ИНТЕРАКТИВНЫХ ЗАДАНИЙ
+     ============================================================ */
+  function checkCalc(taskId) {
+    const task = document.getElementById(taskId);
+    const input = task.querySelector('.calc-input');
+    const answer = input.dataset.answer;
+    const userVal = input.value.trim().replace(',', '.'); // Заменяем запятую на точку
+
+    // Сравниваем как числа
+    if (parseFloat(userVal) === parseFloat(answer)) {
+      input.classList.remove('wrong');
+      input.classList.add('correct');
+    } else {
+      input.classList.remove('correct');
+      input.classList.add('wrong');
+      // Если неправильно, через секунду убираем красный фон, чтобы можно было попробовать снова
+      setTimeout(() => input.classList.remove('wrong'), 1000);
+    }
+  }
+
+  function toggleHint(id) {
+    const hint = document.getElementById(id);
+    if (hint.style.display === 'block') {
+      hint.style.display = 'none';
+    } else {
+      hint.style.display = 'block';
+    }
+  }
+
+  applySlideFilter();
+  openFromHash();
+</script>
+
+</body>
+</html>
