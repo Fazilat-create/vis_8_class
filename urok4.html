@@ -1,0 +1,1266 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Дисперсия числового набора</title>
+
+<script>
+  MathJax = {
+    tex: { inlineMath: [['\\(', '\\)']], displayMath: [['\\[', '\\]']] },
+    svg: { fontCache: 'global' }
+  };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+<style>
+  :root{
+    --main:#4a86e8;
+    --dark:#2b5a99;
+    --light:#e8f0fe;
+    --border:#a4c2f4;
+    --bg:#f8fbff;
+    --green:#27ae60;
+    --red:#e74c3c;
+    --yellow:#f1c40f;
+
+    --plate-mint-bg:#d9f2e6;
+    --plate-mint-br:#27ae60;
+    --plate-teal-bg:#d4f0ee;
+    --plate-teal-br:#16a085;
+    --plate-lime-bg:#eef7d4;
+    --plate-lime-br:#9acd32;
+    --plate-orange-bg:#fde9d3;
+    --plate-orange-br:#e67e22;
+    --plate-blue-bg:#e8f0fe;
+    --plate-blue-br:#4a86e8;
+
+    --hint-bg:#fef9e0;
+    --hint-bar:#f1c40f;
+
+    --text-scale: 1.05;
+  }
+
+  *{box-sizing:border-box;}
+
+  body{
+    margin:0;
+    font-family:"Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    font-size:calc(20px * var(--text-scale));
+    background:var(--bg);
+    color:#1a2b3c;
+    line-height:1.55;
+  }
+
+  .progress{
+    position:fixed; top:0; left:0; height:6px;
+    background:var(--main); width:0%; z-index:100;
+    transition:width .3s ease;
+  }
+  .counter{
+    position:fixed; top:14px; right:20px; z-index:100;
+    background:#fff; color:var(--dark);
+    border:2px solid var(--border); border-radius:24px;
+    padding:6px 20px;
+    font-size:17px; font-weight:800;
+    box-shadow:0 4px 14px rgba(74,134,232,.2);
+  }
+
+  .slide{
+    display:none;
+    max-width:1100px;
+    margin:70px auto 130px;
+    background:#fff;
+    border-radius:20px;
+    box-shadow:0 18px 46px rgba(74,134,232,.15);
+    padding:42px 52px 52px;
+    position:relative;
+    animation:fade .35s ease;
+  }
+  .slide.active{display:block;}
+  @keyframes fade{
+    from{opacity:0; transform:translateY(10px);}
+    to{opacity:1; transform:none;}
+  }
+
+  .slide-num{
+    position:absolute; top:18px; left:26px;
+    font-size:15px; color:var(--border); font-weight:800;
+  }
+
+  h1{
+    font-size:calc(2.1rem * var(--text-scale));
+    color:var(--dark);
+    text-align:center;
+    margin:0 0 12px;
+    font-weight:900;
+  }
+  .subtitle{
+    text-align:center;
+    color:var(--main);
+    font-size:calc(1.15rem * var(--text-scale));
+    margin-bottom:32px;
+    font-weight:700;
+  }
+
+  h2{
+    font-size:calc(1.6rem * var(--text-scale));
+    color:#fff;
+    margin:0 0 24px;
+    padding:12px 24px;
+    background:var(--main);
+    border-radius:14px;
+    font-weight:900;
+    box-shadow:0 8px 20px rgba(74,134,232,.3);
+    display:inline-block;
+  }
+
+  p{margin:12px 0; font-size:calc(19px * var(--text-scale));}
+  ul,ol{margin:12px 0 12px 26px; padding:0;}
+  li{margin:8px 0; font-size:calc(19px * var(--text-scale)); font-weight:500;}
+
+  .plate{
+    border-radius:18px;
+    padding:22px 28px;
+    margin:20px 0;
+    border:2px solid;
+  }
+  .plate-title{
+    display:inline-block;
+    font-size:calc(1.2rem * var(--text-scale));
+    font-weight:900;
+    padding:8px 22px;
+    border-radius:12px;
+    margin-bottom:14px;
+    color:#fff;
+  }
+  .plate-mint{background:var(--plate-mint-bg); border-color:var(--plate-mint-br);}
+  .plate-mint .plate-title{background:var(--plate-mint-br);}
+  .plate-teal{background:var(--plate-teal-bg); border-color:var(--plate-teal-br);}
+  .plate-teal .plate-title{background:var(--plate-teal-br);}
+  .plate-lime{background:var(--plate-lime-bg); border-color:var(--plate-lime-br);}
+  .plate-lime .plate-title{background:var(--plate-lime-br);}
+  .plate-orange{background:var(--plate-orange-bg); border-color:var(--plate-orange-br);}
+  .plate-orange .plate-title{background:var(--plate-orange-br);}
+  .plate-blue{background:var(--plate-blue-bg); border-color:var(--plate-blue-br);}
+  .plate-blue .plate-title{background:var(--plate-blue-br);}
+
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:20px;}
+  .grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:20px;}
+
+  .hint{
+    background:var(--hint-bg);
+    border-left:8px solid var(--hint-bar);
+    border-radius:10px;
+    padding:16px 22px;
+    margin:18px 0;
+    font-size:calc(18px * var(--text-scale));
+    font-weight:600;
+  }
+  .hint b{color:#b45309;}
+
+  .task-box{
+    background:var(--light);
+    border:2px solid var(--border);
+    border-radius:18px;
+    padding:22px 28px;
+    margin:20px 0;
+    position:relative;
+  }
+  
+  .task-num {
+    position: absolute;
+    top: -15px; left: 20px;
+    background: var(--main);
+    color: #fff;
+    padding: 4px 15px;
+    border-radius: 20px;
+    font-weight: 900;
+    font-size: 16px;
+  }
+
+  /* Клетчатое поле для решений */
+  .solution-grid{
+    background-color: #fff;
+    background-image: 
+      linear-gradient(90deg, #d0e6d8 1px, transparent 1px),
+      linear-gradient(#d0e6d8 1px, transparent 1px);
+    background-size: 25px 25px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    min-height: 100px;
+    margin-top: 15px;
+    width: 100%;
+  }
+
+  .big-formula{
+    background:var(--plate-lime-bg);
+    border:3px solid var(--plate-lime-br);
+    border-radius:18px;
+    padding:24px 28px;
+    text-align:center;
+    margin:22px 0;
+  }
+  .big-formula .f-line{
+    font-size:calc(1.4rem * var(--text-scale));
+    color:var(--dark);
+    font-weight:900;
+    margin:8px 0;
+  }
+
+  .math-table{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: calc(16px * var(--text-scale));
+    text-align: center;
+    margin: 15px 0;
+    background: #fff;
+  }
+  .math-table th, .math-table td{
+    border: 2px solid var(--border);
+    padding: 8px;
+  }
+  .math-table th{background: #eaf2f8; font-weight: 800; color: var(--dark);}
+  .math-table .row-a { background-color: #f0f7ff; }
+  .math-table .row-b { background-color: #fff5f5; }
+
+  /* --- Стили для интерактивных вычислений --- */
+  .calc-input {
+    width: 80px;
+    padding: 8px;
+    font-size: 1.1rem;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+    color: var(--dark);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .calc-input:focus { border-color: var(--main); }
+  .calc-input.correct { border-color: var(--green); background: #e8f6ed; }
+  .calc-input.wrong { border-color: var(--red); background: #fde9d3; animation: shake 0.4s; }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+
+  .btn-check {
+    background: var(--main);
+    color: #fff;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-check:hover { background: var(--dark); }
+
+  .btn-reset {
+    background: #95a5a6;
+    color: #fff;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-left: 5px;
+  }
+  .btn-reset:hover { background: #7f8c8d; }
+
+  .btn-hint {
+    background: #fff;
+    color: #d35400;
+    border: 2px solid #e67e22;
+    padding: 6px 14px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .btn-hint:hover { background: #fde9d3; }
+  
+  .hint-content {
+    display: none;
+    background: #fff;
+    border-left: 4px solid #e67e22;
+    padding: 15px;
+    margin-top: 10px;
+    border-radius: 0 8px 8px 0;
+    font-size: 1rem;
+  }
+
+  /* --- Стили для Верно/Неверно --- */
+  .tf-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--border);
+  }
+  .tf-text { flex: 1; font-weight: 500; }
+  .tf-btn {
+    width: 45px; height: 45px;
+    border: 2px solid var(--border);
+    background: #fff;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tf-btn:hover { border-color: var(--main); }
+  .tf-btn.active-ok { background: var(--green); color: #fff; border-color: var(--green); }
+  .tf-btn.active-no { background: var(--red); color: #fff; border-color: var(--red); }
+  
+  .tf-fix {
+    width: 100%;
+    margin-top: 10px;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 1rem;
+    display: none;
+  }
+
+  /* --- Визуализация числовой оси --- */
+  .number-line-container {
+    margin: 40px 10px;
+    position: relative;
+    height: 80px;
+    background: #fff;
+    border-radius: 10px;
+    padding: 0 20px;
+  }
+  .line-axis {
+    position: absolute;
+    top: 40px; left: 0; right: 0;
+    height: 3px;
+    background: #333;
+  }
+  .line-axis::after {
+    content: "▶";
+    position: absolute;
+    right: -10px; top: -11px;
+    color: #333;
+    font-size: 24px;
+  }
+  .line-tick {
+    position: absolute;
+    top: 30px;
+    width: 2px; height: 20px;
+    background: #333;
+    transform: translateX(-50%);
+  }
+  .line-label {
+    position: absolute;
+    top: 55px;
+    transform: translateX(-50%);
+    font-weight: bold;
+    font-size: 16px;
+  }
+  .dot {
+    position: absolute;
+    top: 32px;
+    width: 16px; height: 16px;
+    background: #1b3a68;
+    border-radius: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+  }
+
+  .nav{
+    position:fixed; bottom:22px; left:50%; transform:translateX(-50%);
+    display:flex; gap:14px; z-index:100;
+  }
+  .nav button{
+    background:var(--main); color:#fff; border:none;
+    padding:12px 28px; border-radius:32px;
+    font-size:17px; font-weight:800; cursor:pointer;
+    box-shadow:0 8px 22px rgba(74,134,232,.4);
+    transition:background .2s, transform .1s;
+  }
+  .nav button:hover{background:var(--dark);}
+  .nav button:disabled{background:#b3d4ec; cursor:default; box-shadow:none;}
+
+  @media (max-width:760px){
+    .slide{margin:60px 12px 130px; padding:24px 18px 32px;}
+    .grid-2,.grid-3{grid-template-columns:1fr;}
+    h1{font-size:1.6rem;}
+    h2{font-size:1.35rem; padding:10px 18px;}
+    .tf-row { flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="counter" id="counter">1 / 19</div>
+
+<!-- ================= СЛАЙД 1. Титул ================= -->
+<section class="slide active" data-num="1">
+  <span class="slide-num">Слайд 1</span>
+  <h1>Дисперсия числового набора</h1>
+  <p class="subtitle">Урок 2. Измеряем рассеивание данных</p>
+
+  <div class="plate plate-blue" style="text-align:center; margin-top: 50px;">
+    <h3 style="font-size: 2rem; margin:0;">Класс: 8</h3>
+    <p style="font-size: 1.2rem; margin-top: 10px;">Дата: ______________</p>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 2. Наглядность 1 ================= -->
+<section class="slide" data-num="2">
+  <span class="slide-num">Слайд 2</span>
+  <h2>Повторение: где рассеивание больше?</h2>
+
+  <p>На рисунке изображены два числовых набора. Определите, в каком из этих наборов отклонения в среднем больше.</p>
+
+  <div class="number-line-container">
+    <div class="line-axis"></div>
+    <div class="line-tick" style="left: 50%;"></div><div class="line-label" style="left: 50%;">0</div>
+    <div class="line-tick" style="left: 80%;"></div><div class="line-label" style="left: 80%;">1</div>
+    
+    <div class="dot" style="left: 35%;"></div>
+    <div class="dot" style="left: 38%;"></div>
+    <div class="dot" style="left: 46%;"></div>
+    <div class="dot" style="left: 49%;"></div>
+    <div class="dot" style="left: 52%;"></div>
+    <div class="dot" style="left: 60%;"></div>
+    <div class="dot" style="left: 64%;"></div>
+    <div class="dot" style="left: 68%;"></div>
+    <div class="dot" style="left: 72%;"></div>
+    <div class="dot" style="left: 78%;"></div>
+    <div class="dot" style="left: 82%;"></div>
+    <div class="dot" style="left: 86%;"></div>
+    <div class="dot" style="left: 90%;"></div>
+  </div>
+
+  <div class="number-line-container">
+    <div class="line-axis"></div>
+    <div class="line-tick" style="left: 50%;"></div><div class="line-label" style="left: 50%;">0</div>
+    <div class="line-tick" style="left: 80%;"></div><div class="line-label" style="left: 80%;">1</div>
+    
+    <div class="dot" style="left: 5%;"></div>
+    <div class="dot" style="left: 10%;"></div>
+    <div class="dot" style="left: 25%;"></div>
+    <div class="dot" style="left: 40%;"></div>
+    <div class="dot" style="left: 45%;"></div>
+    <div class="dot" style="left: 55%;"></div>
+    <div class="dot" style="left: 60%;"></div>
+    <div class="dot" style="left: 75%;"></div>
+    <div class="dot" style="left: 85%;"></div>
+    <div class="dot" style="left: 90%;"></div>
+    <div class="dot" style="left: 95%;"></div>
+  </div>
+
+  <div class="hint">
+    <b>Ответ:</b> во втором наборе. Чем меньше в целом абсолютные отклонения, тем меньше рассеяны значения в наборе.
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 3. Наглядность 2 ================= -->
+<section class="slide" data-num="3">
+  <span class="slide-num">Слайд 3</span>
+  <h2>Повторение: одинаково ли рассеяны?</h2>
+
+  <p>На координатной прямой изображены два числовых набора с одинаковыми средними. Как вам кажется, одинаково ли рассеяны точки на прямой?</p>
+
+  <div class="number-line-container">
+    <div class="line-axis"></div>
+    <div class="line-tick" style="left: 20%;"></div><div class="line-label" style="left: 20%;">1</div>
+    <div class="line-tick" style="left: 80%;"></div><div class="line-label" style="left: 80%;">9</div>
+    
+    <div class="dot" style="left: 15%; top: 30px;"></div>
+    <div class="dot" style="left: 20%; top: 30px;"></div>
+    <div class="dot" style="left: 25%; top: 30px;"></div>
+    <div class="dot" style="left: 75%; top: 30px;"></div>
+    <div class="dot" style="left: 80%; top: 30px;"></div>
+    <div class="dot" style="left: 85%; top: 30px;"></div>
+  </div>
+
+  <div class="number-line-container">
+    <div class="line-axis"></div>
+    <div class="line-tick" style="left: 20%;"></div><div class="line-label" style="left: 20%;">1</div>
+    <div class="line-tick" style="left: 50%;"></div><div class="line-label" style="left: 50%;">5</div>
+    <div class="line-tick" style="left: 80%;"></div><div class="line-label" style="left: 80%;">9</div>
+    
+    <div class="dot" style="left: 20%; top: 30px;"></div>
+    <div class="dot" style="left: 45%; top: 30px;"></div>
+    <div class="dot" style="left: 48%; top: 30px;"></div>
+    <div class="dot" style="left: 52%; top: 30px;"></div>
+    <div class="dot" style="left: 55%; top: 30px;"></div>
+    <div class="dot" style="left: 80%; top: 30px;"></div>
+  </div>
+
+  <div class="hint">
+    Хотя крайние значения одинаковы, во втором наборе основная масса данных «сгруппирована» в центре.
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 4. Проблема: Сумма абсолютных отклонений ================= -->
+<section class="slide" data-num="4">
+  <span class="slide-num">Слайд 4</span>
+  <h2>Сумма абсолютных отклонений</h2>
+
+  <p>Давайте найдем сумму абсолютных отклонений для каждого набора. Среднее в обоих случаях равно 5.</p>
+
+  <div class="grid-2">
+    <div class="plate plate-blue">
+      <span class="plate-title">Набор 1</span>
+      <p>Точки: 1, 1, 1, 9, 9, 9.</p>
+      <p>Отклонения от 5: \(|1-5|=4\), \(|9-5|=4\).</p>
+      <p><b>Сумма:</b> \(6 \cdot 4 = 24\).</p>
+    </div>
+    <div class="plate plate-orange">
+      <span class="plate-title">Набор 2</span>
+      <p>Точки: 1, 5, 5, 5, 5, 9.</p>
+      <p>Отклонения от 5: \(|1-5|=4\), \(|5-5|=0\), \(|9-5|=4\).</p>
+      <p><b>Сумма:</b> \(2 \cdot 4 = 8\).</p>
+    </div>
+  </div>
+
+  <div class="hint">
+    <b>Разница заметна!</b> Сумма абсолютных отклонений показывает, что первый набор рассеян сильнее (24 против 8).
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 5. Один размах — разное рассеивание ================= -->
+<section class="slide" data-num="5">
+  <span class="slide-num">Слайд 5</span>
+  <h2>Один размах — разное рассеивание</h2>
+
+  <p>Рассмотрим два набора:</p>
+  <ul>
+    <li><b>А:</b> 2, 9, 10, 10, 11, 18</li>
+    <li><b>Б:</b> 2, 3, 9, 11, 17, 18</li>
+  </ul>
+
+  <p>Найдите среднее арифметическое, размах и абсолютные отклонения для каждого набора, затем сравните рассеивание.</p>
+
+  <table class="math-table">
+    <tr>
+      <th>Набор</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th>
+    </tr>
+    <tr class="row-a">
+      <td><b>\(x\) (А)</b></td>
+      <td>2</td><td>9</td><td>10</td><td>10</td><td>11</td><td>18</td>
+    </tr>
+    <tr class="row-a">
+      <td><b>\(|x - \bar{x}|\) (А)</b></td>
+      <td><input type="text" class="calc-input" id="devA1" data-answer="8" placeholder="?"></td>
+      <td><input type="text" class="calc-input" id="devA2" data-answer="1" placeholder="?"></td>
+      <td><input type="text" class="calc-input" id="devA3" data-answer="0" placeholder="?"></td>
+      <td><input type="text" class="calc-input" id="devA4" data-answer="0" placeholder="?"></td>
+      <td><input type="text" class="calc-input" id="devA5" data-answer="1" placeholder="?"></td>
+      <td><input type="text" class="calc-input" id="devA6" data-answer="8" placeholder="?"></td>
+    </tr>
+    <tr class="row-b">
+      <td><b>\(x\) (Б)</b></td>
+      <td>2</td><td>3</td><td>9</td><td>11</td><td>17</td><td>18</td>
+    </tr>
+    <tr class="row-b">
+      <td><b>\(|x - \bar{x}|\) (Б)</b></td>
+      <td><input type="text" class="calc-input" id="devB1" data-answer="8" placeholder="?"></td>
+      <td><input type="text" class="calc-input" id="devB2" data-answer="7" placeholder="?"></td>
+      <td><input type="text" class="calc-input" id="devB3" data-answer="1" placeholder="?"></td>
+      <td><input type="text" class="calc-input" id="devB4" data-answer="1" placeholder="?"></td>
+      <td><input type="text" class="calc-input" id="devB5" data-answer="7" placeholder="?"></td>
+      <td><input type="text" class="calc-input" id="devB6" data-answer="8" placeholder="?"></td>
+    </tr>
+  </table>
+
+  <button class="btn-check" style="margin-bottom: 15px;" onclick="checkTable2()">Проверить таблицу</button>
+  <button class="btn-reset" style="margin-bottom: 15px;" onclick="resetTable2()">Сбросить</button>
+
+  <div class="calc-row" style="display: flex; gap: 20px; flex-wrap: wrap; background: none; border: none; padding: 0;">
+    <div style="background:#fff; padding:10px; border-radius:10px; border:1px solid var(--border);">
+      <b>А:</b> \(\bar{x} =\) <input type="text" class="calc-input" id="meanA" data-answer="10" placeholder="?"> ,
+      \(R =\) <input type="text" class="calc-input" id="rangeA" data-answer="16" placeholder="?">
+    </div>
+    <div style="background:#fff; padding:10px; border-radius:10px; border:1px solid var(--border);">
+      <b>Б:</b> \(\bar{x} =\) <input type="text" class="calc-input" id="meanB" data-answer="10" placeholder="?"> ,
+      \(R =\) <input type="text" class="calc-input" id="rangeB" data-answer="16" placeholder="?">
+    </div>
+  </div>
+  
+  <div class="hint" style="margin-top: 15px;">
+    Одинаковый размах: <input type="text" class="calc-input" style="width: 60px;" data-answer="16" placeholder="?">, потому что <input type="text" class="calc-input" style="width: 250px;" placeholder="разброс отличается">
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 6. Верно или неверно ================= -->
+<section class="slide" data-num="6">
+  <span class="slide-num">Слайд 6</span>
+  <h2>Верно или неверно?</h2>
+  <p>Выбери: <b>В</b> — верно, <b>Н</b> — неверно. Для неверных утверждений запиши исправление.</p>
+
+  <div class="tf-row">
+    <div class="tf-text">1. Отклонение показывает разность между числом и средним арифметическим.</div>
+    <button class="tf-btn" onclick="setTF(this, true)">В</button>
+    <button class="tf-btn" onclick="setTF(this, false)">Н</button>
+  </div>
+
+  <div class="tf-row">
+    <div class="tf-text">2. Все отклонения чисел набора положительны.</div>
+    <button class="tf-btn" onclick="setTF(this, false)">В</button>
+    <button class="tf-btn" onclick="setTF(this, true)">Н</button>
+  </div>
+  <input type="text" class="tf-fix" placeholder="Исправление (отклонения могут быть отрицательными...)">
+
+  <div class="tf-row">
+    <div class="tf-text">3. Если число равно среднему арифметическому, его отклонение равно нулю.</div>
+    <button class="tf-btn" onclick="setTF(this, true)">В</button>
+    <button class="tf-btn" onclick="setTF(this, false)">Н</button>
+  </div>
+
+  <div class="tf-row">
+    <div class="tf-text">4. Сумма всех отклонений от среднего арифметического равна нулю.</div>
+    <button class="tf-btn" onclick="setTF(this, true)">В</button>
+    <button class="tf-btn" onclick="setTF(this, false)">Н</button>
+  </div>
+
+  <div class="tf-row">
+    <div class="tf-text">5. Абсолютное отклонение может быть отрицательным.</div>
+    <button class="tf-btn" onclick="setTF(this, false)">В</button>
+    <button class="tf-btn" onclick="setTF(this, true)">Н</button>
+  </div>
+  <input type="text" class="tf-fix" placeholder="Исправление (абсолютное отклонение всегда неотрицательно...)">
+
+  <div class="tf-row">
+    <div class="tf-text">6. Одинаковый размах не гарантирует одинакового рассеивания.</div>
+    <button class="tf-btn" onclick="setTF(this, true)">В</button>
+    <button class="tf-btn" onclick="setTF(this, false)">Н</button>
+  </div>
+
+  <div class="hint" style="margin-top: 20px; font-size: 0.9rem;">
+    💡 <b>Проверка проста:</b> сложи все отклонения. Если получилось не 0 — где-то ошибка.
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 7. Измени рассеивание ================= -->
+<section class="slide" data-num="7">
+  <span class="slide-num">Слайд 7</span>
+  <h2>Измени рассеивание</h2>
+
+  <p>Дан набор: <b>6, 8, 10, 12, 14</b>.</p>
+  <p>Измени только два числа так, чтобы среднее осталось равным 10, а рассеивание стало больше.</p>
+
+  <div style="background: #fff; padding: 20px; border-radius: 15px; border: 2px solid var(--border); margin: 20px 0;">
+    <div style="font-weight: bold; margin-bottom: 10px;">Было:</div>
+    <div class="num-box" style="display: flex; gap: 10px; justify-content: center;">
+      <input type="text" value="6" disabled style="width: 60px; height: 60px; text-align: center; font-size: 1.5rem; font-weight: bold; border: 2px solid var(--border); border-radius: 10px;">
+      <input type="text" value="8" disabled style="width: 60px; height: 60px; text-align: center; font-size: 1.5rem; font-weight: bold; border: 2px solid var(--border); border-radius: 10px;">
+      <input type="text" value="10" disabled style="width: 60px; height: 60px; text-align: center; font-size: 1.5rem; font-weight: bold; border: 2px solid var(--border); border-radius: 10px;">
+      <input type="text" value="12" disabled style="width: 60px; height: 60px; text-align: center; font-size: 1.5rem; font-weight: bold; border: 2px solid var(--border); border-radius: 10px;">
+      <input type="text" value="14" disabled style="width: 60px; height: 60px; text-align: center; font-size: 1.5rem; font-weight: bold; border: 2px solid var(--border); border-radius: 10px;">
+    </div>
+
+    <div style="font-weight: bold; margin: 20px 0 10px 0;">Стало:</div>
+    <div class="num-box" style="display: flex; gap: 10px; justify-content: center;">
+      <input type="text" class="change-inp" placeholder="?" style="width: 60px; height: 60px; text-align: center; font-size: 1.5rem; font-weight: bold; border: 2px solid var(--border); border-radius: 10px;">
+      <input type="text" class="change-inp" placeholder="?" style="width: 60px; height: 60px; text-align: center; font-size: 1.5rem; font-weight: bold; border: 2px solid var(--border); border-radius: 10px;">
+      <input type="text" value="10" disabled style="width: 60px; height: 60px; text-align: center; font-size: 1.5rem; font-weight: bold; border: 2px solid var(--border); border-radius: 10px;">
+      <input type="text" class="change-inp" placeholder="?" style="width: 60px; height: 60px; text-align: center; font-size: 1.5rem; font-weight: bold; border: 2px solid var(--border); border-radius: 10px;">
+      <input type="text" class="change-inp" placeholder="?" style="width: 60px; height: 60px; text-align: center; font-size: 1.5rem; font-weight: bold; border: 2px solid var(--border); border-radius: 10px;">
+    </div>
+  </div>
+
+  <button class="btn-check" onclick="checkChange()">Проверить</button>
+  <button class="btn-reset" onclick="resetChange()">Сбросить</button>
+  <div id="change-feedback" style="margin-top: 15px; font-weight: bold;"></div>
+
+  <div class="hint" style="margin-top: 20px;">
+    <b>Совет:</b> Чтобы среднее не изменилось, сумма всех чисел должна остаться прежней. Чтобы увеличить рассеивание, «раздвинь» два значения дальше от среднего.
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 8. Поиск лучшей меры ================= -->
+<section class="slide" data-num="8">
+  <span class="slide-num">Слайд 8</span>
+  <h2>Поиск лучшей меры</h2>
+
+  <p>Наиболее полной характеристикой рассеивания является <b>набор всех отклонений</b>. Но когда набор данных большой, рассматривать каждое отклонение неудобно.</p>
+  <p>Нужно взять какое-то <b>среднее отклонение</b>. Но среднее арифметическое отклонений не годится, поскольку оно у любого набора равно нулю!</p>
+
+  <div class="plate plate-lime">
+    <p>Чтобы судить о рассеивании, принято усреднять <b>квадраты отклонений</b>.</p>
+    <ul>
+      <li>Квадраты отклонений неотрицательны.</li>
+      <li>Чем больше отклонения по модулю, тем больше будет средний квадрат отклонений.</li>
+    </ul>
+  </div>
+
+  <div class="hint">
+    Эту величину (средний квадрат отклонений) в статистике называют <b>дисперсией</b>.
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 9. Формула дисперсии ================= -->
+<section class="slide" data-num="9">
+  <span class="slide-num">Слайд 9</span>
+  <h2>Определение дисперсии</h2>
+
+  <div class="plate plate-blue">
+    <p><b>Дисперсия</b> — это среднее арифметическое квадратов отклонений от среднего арифметического.</p>
+    <p>Или короче: <b>дисперсия — это средний квадрат отклонений</b>.</p>
+  </div>
+
+  <div class="big-formula">
+    <div class="f-line">\(S^2 = \dfrac{(x_1 - \bar{x})^2 + (x_2 - \bar{x})^2 + \dots + (x_n - \bar{x})^2}{n}\)</div>
+  </div>
+
+  <div class="hint">
+    <b>Обозначение:</b> часто используют \(S^2\) или \(D\).
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 10. Пример 1 ================= -->
+<section class="slide" data-num="10">
+  <span class="slide-num">Слайд 10</span>
+  <h2>Пример 1. Вычисление дисперсии</h2>
+
+  <div class="task-box">
+    <p>Найдите дисперсию числового набора <b>4, 3, 0, 5</b>.</p>
+    
+    <table class="math-table">
+      <tr>
+        <th>Значение (\(x_i\))</th>
+        <th>Отклонение (\(x_i - \bar{x}\))</th>
+        <th>Квадрат отклонения</th>
+      </tr>
+      <tr>
+        <td>4</td>
+        <td><input type="text" class="calc-input" id="ex1-dev1" data-answer="1" placeholder="?"></td>
+        <td><input type="text" class="calc-input" id="ex1-sq1" data-answer="1" placeholder="?"></td>
+      </tr>
+      <tr>
+        <td>3</td>
+        <td><input type="text" class="calc-input" id="ex1-dev2" data-answer="0" placeholder="?"></td>
+        <td><input type="text" class="calc-input" id="ex1-sq2" data-answer="0" placeholder="?"></td>
+      </tr>
+      <tr>
+        <td>0</td>
+        <td><input type="text" class="calc-input" id="ex1-dev3" data-answer="-3" placeholder="?"></td>
+        <td><input type="text" class="calc-input" id="ex1-sq3" data-answer="9" placeholder="?"></td>
+      </tr>
+      <tr>
+        <td>5</td>
+        <td><input type="text" class="calc-input" id="ex1-dev4" data-answer="2" placeholder="?"></td>
+        <td><input type="text" class="calc-input" id="ex1-sq4" data-answer="4" placeholder="?"></td>
+      </tr>
+      <tr>
+        <td><b>Среднее \(\bar{x} =\)</b> <input type="text" class="calc-input" id="ex1-mean" data-answer="3" placeholder="?"></td>
+        <td>Сумма = 0</td>
+        <td>Дисперсия: <input type="text" class="calc-input" id="ex1-disp" data-answer="3.5" placeholder="?"></td>
+      </tr>
+    </table>
+
+    <button class="btn-check" onclick="checkTable3()">Проверить таблицу</button>
+    <button class="btn-reset" onclick="resetTable3()">Сбросить</button>
+
+    <div class="hint" style="margin-top: 15px;">
+      Чтобы вычислить дисперсию, нужно найти среднее арифметическое третьего столбца.
+    </div>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 11. Сравнение наборов (Пример 2) ================= -->
+<section class="slide" data-num="11">
+  <span class="slide-num">Слайд 11</span>
+  <h2>Пример 2. Сравнение наборов</h2>
+
+  <p>Найдите дисперсию числового набора <b>3, 3, 2, 4</b>.</p>
+  <p>Сравните этот набор с набором из Примера 1 (4, 3, 0, 5).</p>
+  
+  <ul>
+    <li>Сравните среднее арифметическое.</li>
+    <li>Сравните дисперсию.</li>
+    <li>Изобразите два набора на координатной прямой и сравните рассеивание.</li>
+  </ul>
+
+  <div class="solution-grid" style="min-height: 200px;"></div>
+</section>
+
+<!-- ================= СЛАЙД 12. Пример 3 (Таблица климата) ================= -->
+<section class="slide" data-num="12">
+  <span class="slide-num">Слайд 12</span>
+  <h2>Пример 3. Климат</h2>
+  
+  <p>Континентальный климат отличается от умеренного более резкими изменениями температуры в течение года. С помощью дисперсии различия между двумя видами климата можно выразить количественно.</p>
+  <p>В таблице приведена средняя месячная температура за 80 лет в Москве, Киеве, Новосибирске и Хабаровске. <b>Вычислите дисперсии температур.</b></p>
+
+  <div style="overflow-x: auto; font-size: 0.9rem;">
+    <table class="math-table">
+      <tr>
+        <th>Месяц</th><th>Москва</th><th>Киев</th><th>Новосибирск</th><th>Хабаровск</th>
+      </tr>
+      <tr><td>Январь</td><td>-9,3</td><td>-5,9</td><td>-19,0</td><td>-22,3</td></tr>
+      <tr><td>Февраль</td><td>-8,6</td><td>-5,2</td><td>-17,2</td><td>-17,2</td></tr>
+      <tr><td>Март</td><td>-3,4</td><td>-0,4</td><td>-10,7</td><td>-8,5</td></tr>
+      <tr><td>Апрель</td><td>5,1</td><td>7,5</td><td>-0,1</td><td>-3,1</td></tr>
+      <tr><td>Май</td><td>12,4</td><td>14,7</td><td>10,0</td><td>11,1</td></tr>
+      <tr><td>Июнь</td><td>16,7</td><td>17,8</td><td>16,3</td><td>17,4</td></tr>
+      <tr><td>Июль</td><td>18,4</td><td>19,8</td><td>18,7</td><td>21,1</td></tr>
+      <tr><td>Август</td><td>16,6</td><td>18,7</td><td>16,0</td><td>20,0</td></tr>
+      <tr><td>Сентябрь</td><td>10,9</td><td>13,9</td><td>9,9</td><td>13,9</td></tr>
+      <tr><td>Октябрь</td><td>4,4</td><td>7,5</td><td>1,5</td><td>4,7</td></tr>
+      <tr><td>Ноябрь</td><td>-2,0</td><td>1,2</td><td>-9,7</td><td>-8,1</td></tr>
+      <tr><td>Декабрь</td><td>-6,8</td><td>-8,5</td><td>-16,9</td><td>-18,5</td></tr>
+      <tr style="background:var(--light); font-weight:bold;">
+        <td>Среднее</td><td>4,5</td><td>7,2</td><td>-0,1</td><td>1,4</td>
+      </tr>
+    </table>
+  </div>
+  
+  <div class="hint">
+    Обратите внимание: в Новосибирске средняя годовая температура ниже, чем в Москве, но разница между летом и зимой (и, следовательно, дисперсия) будет совершенно другой. Попробуйте посчитать хотя бы для Москвы и Новосибирска.
+  </div>
+  <div class="solution-grid" style="min-height: 100px;"></div>
+</section>
+
+<!-- ================= СЛАЙД 13. Практика ================= -->
+<section class="slide" data-num="13">
+  <span class="slide-num">Слайд 13</span>
+  <h2>Практика: вычисли дисперсию</h2>
+  <p>Давайте посчитаем дисперсию для трёх разных наборов и посмотрим, что получится.</p>
+
+  <div class="task-box" id="task-practice-1">
+    <p><b>Задача 1.</b> Дан ряд: <b>2, 4, 6, 8, 10</b>.</p>
+    <p>Среднее \(\bar{x} = 6\). Квадраты отклонений: 16, 4, 0, 4, 16.</p>
+    <div class="calc-row" style="margin-top: 10px;">
+      <span>Найдите дисперсию \(D\):</span>
+      <input type="text" class="calc-input" data-answer="8" placeholder="Ответ">
+      <button class="btn-check" onclick="checkCalc('task-practice-1')">Проверить</button>
+      <button class="btn-reset" onclick="resetCalc('task-practice-1')">Сбросить</button>
+    </div>
+    <button class="btn-hint" onclick="nextHint('task-practice-1')">💡 Подсказка</button>
+    <div class="hint-content" id="hint-practice-1">Сумма квадратов: \(16 + 4 + 0 + 4 + 16 = 40\).<br>Делим на 5: \(40 \div 5 = 8\).</div>
+  </div>
+
+  <div class="task-box" id="task-practice-2">
+    <p><b>Задача 2.</b> Дан ряд: <b>1, 2, 3, 4, 5</b>.</p>
+    <p>Сначала найдите среднее, затем отклонения, квадраты и саму дисперсию.</p>
+    <div class="calc-row" style="margin-top: 10px;">
+      <span>Дисперсия \(D\) = </span>
+      <input type="text" class="calc-input" data-answer="2" placeholder="Ответ">
+      <button class="btn-check" onclick="checkCalc('task-practice-2')">Проверить</button>
+      <button class="btn-reset" onclick="resetCalc('task-practice-2')">Сбросить</button>
+    </div>
+    <button class="btn-hint" onclick="nextHint('task-practice-2')">💡 Подсказка</button>
+    <div class="hint-content" id="hint-practice-2">
+      1. Среднее: \((1+2+3+4+5) \div 5 = 3\).<br>
+      2. Отклонения: -2, -1, 0, 1, 2.<br>
+      3. Квадраты: 4, 1, 0, 1, 4.<br>
+      4. Дисперсия: \((4+1+0+1+4) \div 5 = 10 \div 5 = 2\).
+    </div>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 14. Практика 3 ================= -->
+<section class="slide" data-num="14">
+  <span class="slide-num">Слайд 14</span>
+  <h2>Практика: ещё один случай</h2>
+
+  <div class="task-box" id="task-practice-3">
+    <p><b>Задача 3.</b> Дан ряд: <b>4, 4, 4, 4, 4</b>.</p>
+    <p>Как вы думаете, чему равна дисперсия этого набора?</p>
+    <div class="calc-row" style="margin-top: 10px;">
+      <span>Дисперсия \(D\) = </span>
+      <input type="text" class="calc-input" data-answer="0" placeholder="Ответ">
+      <button class="btn-check" onclick="checkCalc('task-practice-3')">Проверить</button>
+      <button class="btn-reset" onclick="resetCalc('task-practice-3')">Сбросить</button>
+    </div>
+    <button class="btn-hint" onclick="nextHint('task-practice-3')">💡 Подсказка</button>
+    <div class="hint-content" id="hint-practice-3">
+      Все числа одинаковые. Среднее равно 4. Отклонения: 0, 0, 0, 0, 0.<br>
+      Квадраты тоже нули. Сумма нулей = 0. Дисперсия = 0.
+    </div>
+  </div>
+
+  <div class="hint" style="margin-top: 20px; background: #e8f6ed; border-left-color: #27ae60;">
+    <b>Посмотрите на свои ответы:</b><br>
+    Задача 1: \(D = 8\)<br>
+    Задача 2: \(D = 2\)<br>
+    Задача 3: \(D = 0\)<br>
+    Какой вывод можно сделать о значениях дисперсии? Может ли она быть отрицательной?
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 15. Выводы (Свойства) ================= -->
+<section class="slide" data-num="15">
+  <span class="slide-num">Слайд 15</span>
+  <h2>Делаем выводы</h2>
+
+  <p>Посмотрев на результаты вычислений, мы можем сформулировать свойства дисперсии:</p>
+
+  <div class="grid-2">
+    <div class="plate plate-blue">
+      <span class="plate-title">Свойство 1</span>
+      <p>Дисперсия всегда <b>неотрицательна</b>:</p>
+      <p class="formula" style="font-size:1.3rem;">\(D \ge 0\)</p>
+      <p>Она не может быть отрицательной, ведь это сумма квадратов.</p>
+    </div>
+    <div class="plate plate-orange">
+      <span class="plate-title">Свойство 2</span>
+      <p>Если все числа одинаковы, то <b>дисперсия равна 0</b>.</p>
+      <p>Пример: 5, 5, 5, 5, 5. Они не отклоняются от среднего, значит разброса нет.</p>
+    </div>
+  </div>
+
+  <div class="hint">
+    <b>Сравнение:</b> Чем больше дисперсия (например, 8 против 2), тем сильнее данные разбросаны вокруг среднего значения.
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 16. Задачи из учебника ================= -->
+<section class="slide" data-num="16">
+  <span class="slide-num">Слайд 16</span>
+  <h2>Задачи из учебника</h2>
+
+  <div class="task-box">
+    <span class="task-num">Задача №311</span>
+    <p style="margin-top: 10px;">Найдите дисперсию числового набора:</p>
+    <p>а) 1, 2, 3, 4;</p>
+    <p>б) 2, 3, 4, 5, 6.</p>
+    <div class="solution-grid" style="min-height: 150px;"></div>
+  </div>
+
+  <div class="task-box">
+    <span class="task-num">Задача №312</span>
+    <p style="margin-top: 10px;">В таблице приведены данные о количестве осадков (в мм) за 5 месяцев. Найдите дисперсию.</p>
+    <p><i>(Данные из учебника: 20, 30, 10, 40, 50)</i>.</p>
+    <div class="solution-grid" style="min-height: 100px;"></div>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 17. Физкультминутка ================= -->
+<section class="slide" data-num="17">
+  <span class="slide-num">Слайд 17</span>
+  <h2 style="background: #5b9bd5;">Физкультминутка</h2>
+
+  <div style="text-align: center; margin: 40px 0;">
+    <div class="plate plate-blue" style="text-align: left; max-width: 800px; margin: 0 auto;">
+      <ol style="font-size: 1.2rem; line-height: 2;">
+        <li>Потянитесь руками вверх, разомните пальцы.</li>
+        <li>Посмотрите налево, затем направо (по 3 раза).</li>
+        <li>Сделайте круговые движения глазами (по 3 раза).</li>
+        <li>Сделайте глубокий вдох и выдох.</li>
+      </ol>
+    </div>
+    <p style="margin-top: 30px; font-size: 3rem;">🐈</p>
+  </div>
+</section>
+
+<!-- ================= СЛАЙД 18. Итог и ДЗ ================= -->
+<section class="slide" data-num="18">
+  <span class="slide-num">Слайд 18</span>
+  <h2>Итоги и Домашнее задание</h2>
+
+  <div class="plate plate-mint">
+    <span class="plate-title">Запомним</span>
+    <ul>
+      <li><b>Отклонение</b> — разность между значением и средним.</li>
+      <li><b>Дисперсия</b> — среднее арифметическое квадратов отклонений.</li>
+      <li>Дисперсия показывает, насколько сильно данные разбросаны вокруг среднего.</li>
+      <li>Дисперсия всегда неотрицательна (\(D \ge 0\)).</li>
+    </ul>
+  </div>
+
+  <div class="hint">
+    <b>Домашнее задание:</b>
+    <ul>
+      <li>Выучить формулу дисперсии и алгоритм вычисления.</li>
+      <li>№ 313, № 314 из учебника.</li>
+      <li>Придумать свой набор из 5 чисел, у которого дисперсия будет равна 0.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ================= НАВИГАЦИЯ ================= -->
+<div class="nav">
+  <button id="prev">← Назад</button>
+  <button id="next">Вперёд →</button>
+</div>
+
+<script>
+  function applySlideFilter(){
+    const params = new URLSearchParams(location.search);
+    const filter = params.get('slides');
+    if (!filter) return;
+
+    const nums = new Set();
+    filter.split(',').forEach(part => {
+      part = part.trim();
+      if (part.includes('-')) {
+        const [a, b] = part.split('-').map(n => parseInt(n, 10));
+        if (!isNaN(a) && !isNaN(b)) {
+          for (let i = a; i <= b; i++) nums.add(i);
+        }
+      } else {
+        const n = parseInt(part, 10);
+        if (!isNaN(n)) nums.add(n);
+      }
+    });
+
+    if (nums.size === 0) return;
+
+    document.querySelectorAll('.slide').forEach(s => {
+      const n = parseInt(s.dataset.num, 10);
+      if (!nums.has(n)) s.remove();
+    });
+  }
+
+  const slides = document.querySelectorAll('.slide');
+  const prevBtn = document.getElementById('prev');
+  const nextBtn = document.getElementById('next');
+  const counter = document.getElementById('counter');
+  const progress = document.getElementById('progress');
+  let current = 0;
+
+  function showSlide(index){
+    slides.forEach((s, i) => s.classList.toggle('active', i === index));
+    current = index;
+    prevBtn.disabled = (index === 0);
+    nextBtn.disabled = (index === slides.length - 1);
+    counter.textContent = (index + 1) + ' / ' + slides.length;
+    progress.style.width = ((index + 1) / slides.length * 100) + '%';
+    window.scrollTo({top:0, behavior:'smooth'});
+
+    const num = slides[index].dataset.num;
+    if (num && location.hash !== '#slide-' + num) {
+      history.replaceState(null, '', '#slide-' + num);
+    }
+  }
+
+  function openFromHash(){
+    const m = location.hash.match(/slide-(\d+)/);
+    if (m) {
+      const n = parseInt(m[1], 10);
+      let idx = -1;
+      slides.forEach((s, i) => {
+        if (parseInt(s.dataset.num, 10) === n) idx = i;
+      });
+      if (idx >= 0) { showSlide(idx); return; }
+    }
+    showSlide(0);
+  }
+
+  prevBtn.addEventListener('click', () => { if(current > 0) showSlide(current - 1); });
+  nextBtn.addEventListener('click', () => { if(current < slides.length - 1) showSlide(current + 1); });
+
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'ArrowLeft' && current > 0) showSlide(current - 1);
+    if(e.key === 'ArrowRight' && current < slides.length - 1) showSlide(current + 1);
+  });
+
+  window.addEventListener('hashchange', openFromHash);
+
+  /* ============================================================
+     ЛОГИКА ДЛЯ ИНТЕРАКТИВНЫХ ЗАДАНИЙ
+     ============================================================ */
+  
+  function checkCalc(taskId) {
+    const task = document.getElementById(taskId);
+    const input = task.querySelector('.calc-input');
+    const answer = input.dataset.answer;
+    const userVal = input.value.trim().replace(',', '.');
+
+    if (parseFloat(userVal) === parseFloat(answer)) {
+      input.classList.remove('wrong');
+      input.classList.add('correct');
+    } else {
+      input.classList.remove('correct');
+      input.classList.add('wrong');
+      setTimeout(() => input.classList.remove('wrong'), 1000);
+    }
+  }
+
+  function resetCalc(taskId) {
+    const task = document.getElementById(taskId);
+    const input = task.querySelector('.calc-input');
+    input.value = '';
+    input.classList.remove('correct', 'wrong');
+    const hint = task.querySelector('.hint-content');
+    if (hint) hint.style.display = 'none';
+  }
+
+  const hintStages = {
+    'task-practice-1': [
+      'Сложи все квадраты отклонений: \(16 + 4 + 0 + 4 + 16\).',
+      'Сумма равна 40. Раздели её на количество чисел (их 5).',
+      'Ответ: \(40 \div 5 = 8\).'
+    ],
+    'task-practice-2': [
+      'Сначала найди среднее: \((1+2+3+4+5) \div 5 = 3\).',
+      'Теперь найди отклонения и возведи их в квадрат: 4, 1, 0, 1, 4.',
+      'Сложи квадраты (10) и раздели на 5. Ответ: 2.'
+    ],
+    'task-practice-3': [
+      'Обрати внимание: все числа в наборе одинаковые.',
+      'Если все числа равны среднему, то их отклонения равны 0.',
+      'Квадраты нулей — тоже нули. Сумма нулей равна 0. Дисперсия 0.'
+    ]
+  };
+
+  let hintCounters = {};
+
+  function nextHint(taskId) {
+    const container = document.getElementById('hint-' + taskId);
+    if (!container) return;
+
+    if (!hintCounters[taskId]) hintCounters[taskId] = 0;
+
+    const stages = hintStages[taskId];
+    if (hintCounters[taskId] < stages.length) {
+      if (hintCounters[taskId] === 0) {
+        container.style.display = 'block';
+        container.innerHTML = `<b>Подсказка 1:</b> ${stages[0]}`;
+      } else {
+        container.innerHTML += `<br><br><b>Подсказка ${hintCounters[taskId] + 1}:</b> ${stages[hintCounters[taskId]]}`;
+      }
+      hintCounters[taskId]++;
+      
+      const btn = event.target;
+      if (hintCounters[taskId] >= stages.length) {
+        btn.textContent = '💡 Больше подсказок нет';
+        btn.disabled = true;
+      } else {
+        btn.textContent = '💡 Следующая подсказка';
+      }
+      
+      MathJax.typesetPromise([container]);
+    }
+  }
+
+  function checkTable2() {
+    const inputs = document.querySelectorAll('.calc-input');
+    inputs.forEach(input => {
+      if (input.id && (input.id.startsWith('dev') || input.id === 'meanA' || input.id === 'rangeA' || input.id === 'meanB' || input.id === 'rangeB')) {
+        const ans = input.dataset.answer;
+        const val = input.value.trim().replace(',', '.');
+        if (parseFloat(val) === parseFloat(ans)) {
+          input.classList.remove('wrong'); input.classList.add('correct');
+        } else {
+          input.classList.remove('correct'); input.classList.add('wrong');
+          setTimeout(() => input.classList.remove('wrong'), 1000);
+        }
+      }
+    });
+  }
+
+  function resetTable2() {
+    const inputs = document.querySelectorAll('.calc-input');
+    inputs.forEach(input => {
+      if (input.id && (input.id.startsWith('dev') || input.id === 'meanA' || input.id === 'rangeA' || input.id === 'meanB' || input.id === 'rangeB')) {
+        input.value = '';
+        input.classList.remove('correct', 'wrong');
+      }
+    });
+  }
+
+  function setTF(btn, isCorrect) {
+    const parent = btn.parentElement;
+    parent.querySelectorAll('.tf-btn').forEach(b => {
+      b.classList.remove('active-ok', 'active-no');
+    });
+
+    if (isCorrect) {
+      btn.classList.add('active-ok');
+      const fixInput = parent.nextElementSibling;
+      if (fixInput && fixInput.classList.contains('tf-fix')) {
+        fixInput.style.display = 'none';
+      }
+    } else {
+      btn.classList.add('active-no');
+      const fixInput = parent.nextElementSibling;
+      if (fixInput && fixInput.classList.contains('tf-fix')) {
+        fixInput.style.display = 'block';
+      }
+    }
+  }
+
+  function checkChange() {
+    const inputs = document.querySelectorAll('.change-inp');
+    const vals = Array.from(inputs).map(inp => parseFloat(inp.value.replace(',', '.')));
+    const feedback = document.getElementById('change-feedback');
+
+    if (vals.some(isNaN)) {
+      feedback.textContent = 'Заполните все поля!';
+      feedback.style.color = 'red';
+      return;
+    }
+
+    const sum = vals[0] + vals[1] + 10 + vals[3] + vals[4];
+    if (sum !== 50) {
+      feedback.textContent = `Сумма чисел равна ${sum}, значит среднее не 10. Попробуйте ещё.`;
+      feedback.style.color = 'red';
+      return;
+    }
+
+    const min = Math.min(vals[0], vals[1], 10, vals[3], vals[4]);
+    const max = Math.max(vals[0], vals[1], 10, vals[3], vals[4]);
+    const range = max - min;
+
+    if (range > 8) {
+      feedback.textContent = `Верно! Новый размах = ${range} (больше изначального 8). Рассеивание увеличилось.`;
+      feedback.style.color = 'green';
+      inputs.forEach(inp => inp.style.borderColor = 'green');
+    } else {
+      feedback.textContent = `Сумма верная, но рассеивание не увеличилось (размах = ${range}). Попробуйте раздвинуть числа сильнее.`;
+      feedback.style.color = 'red';
+    }
+  }
+
+  function resetChange() {
+    const inputs = document.querySelectorAll('.change-inp');
+    inputs.forEach(inp => {
+      inp.value = '';
+      inp.style.borderColor = 'var(--border)';
+    });
+    const feedback = document.getElementById('change-feedback');
+    feedback.textContent = '';
+  }
+
+  function checkTable3() {
+    const ids = ['ex1-dev1', 'ex1-sq1', 'ex1-dev2', 'ex1-sq2', 'ex1-dev3', 'ex1-sq3', 'ex1-dev4', 'ex1-sq4', 'ex1-mean', 'ex1-disp'];
+    ids.forEach(id => {
+      const input = document.getElementById(id);
+      if (!input) return;
+      const ans = parseFloat(input.dataset.answer);
+      const val = parseFloat(input.value.trim().replace(',', '.'));
+      if (val === ans) {
+        input.classList.remove('wrong'); input.classList.add('correct');
+      } else {
+        input.classList.remove('correct'); input.classList.add('wrong');
+        setTimeout(() => input.classList.remove('wrong'), 1000);
+      }
+    });
+  }
+
+  function resetTable3() {
+    const ids = ['ex1-dev1', 'ex1-sq1', 'ex1-dev2', 'ex1-sq2', 'ex1-dev3', 'ex1-sq3', 'ex1-dev4', 'ex1-sq4', 'ex1-mean', 'ex1-disp'];
+    ids.forEach(id => {
+      const input = document.getElementById(id);
+      if (input) {
+        input.value = '';
+        input.classList.remove('correct', 'wrong');
+      }
+    });
+  }
+
+  applySlideFilter();
+  openFromHash();
+</script>
+
+</body>
+</html>
